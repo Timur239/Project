@@ -29,11 +29,11 @@ begin
 level:=1;
   window.SetSize(800, 800);
   window.CenterOnScreen();
- p:=new PictureABC(0,0,'C:\Users\Val\Desktop\ÏÈ_èãðà\ïåðñ1.png');    
- //'H:\PABCWork.NET\Output\ïåðñ1.png');
+ p:=new PictureABC(0,0,'C:\Users\Val\Desktop\ÃÃˆ_Ã¨Ã£Ã°Ã \Ã¯Ã¥Ã°Ã±1.png');    
+ //'H:\PABCWork.NET\Output\Ã¯Ã¥Ã°Ã±1.png');
  P.Scale(0.5);
- ob:=new PictureABC(0, 0, 'C:\Users\Val\Desktop\ÏÈ_èãðà\ïàä 1.png');
- //'H:\PABCWork.NET\Output\ïàä 1.png');
+ ob:=new PictureABC(0, 0, 'C:\Users\Val\Desktop\ÃÃˆ_Ã¨Ã£Ã°Ã \Ã¯Ã Ã¤ 1.png');
+ //'H:\PABCWork.NET\Output\Ã¯Ã Ã¤ 1.png');
  ob.Scale(0.25);
  p.Top:=window.Height-p.Height;
  OnKeyDown :=KeyDown;
@@ -69,69 +69,65 @@ end.
 
 
 
-import random
-import time
-from graphics import *
-
-p = None  
-ob = None  
-k = 0
-level = 1
-
-def key_down(key):
-    global p
-    if key == "Left":
-        if p.left > -30:
-            p.left -= (10 - level)
-    elif key == "Right":
-        if p.left < 500:
-            p.left += (10 - level)
-
-def new_ob():
-    global ob
-    ob.top = 0 - ob.height
-    ob.left = random.randint(0, window.width - ob.width)
-
-def go():
-    global ob, k
-    if ob.top < window.height:
-        ob.top += level
-    else:
-        new_ob()
-        k -= 100
-
-level = 1
-window = GraphWin("Game Window", 800, 800)
-window.center()
-
-p = Image(Point(0, 0), 'C:\\Users\\Val\\Desktop\\ÏÈ_èãðà\\ïåðñ1.png')
-p.scale(0.5)
-ob = Image(Point(0, 0), 'C:\\Users\\Val\\Desktop\\ÏÈ_èãðà\\ïàä 1.png')
-ob.scale(0.25)
-
-p.top = window.height - p.height
-window.bind("<KeyPress>", key_down)
-
-while True: 
-    if 50 <= k <= 150:
-        level = 2
-    elif 151 <= k <= 250:
-        level = 3
-    elif 251 <= k <= 299:
-        level = 4
-    elif 300 <= k <= 350:
-        level = 5
-    else:
-        level = 1
-
-    if k > 350:
-        window.close()
-
-    go()
-
-    if p.intersect(ob):
-        new_ob()
-        k += 10
-
-    window.title(str(k))
-    time.sleep(0.01)
+import pygame 
+import sys 
+import random ##### 
+# Initialize Pygame 
+pygame.init() 
+ 
+# Set up the screen 
+screen_width = 800 
+screen_height = 600 
+screen = pygame.display.set_mode((screen_width, screen_height)) 
+pygame.display.set_caption("Pygame Sample") 
+ 
+# Set up colors 
+BLACK = (0, 0, 0) 
+RED = (255, 0, 0) 
+ 
+# Set up the initial position and speed of the square 
+square_size = 50 
+square_x = (screen_width - square_size) // 2 
+square_y = screen_height - square_size
+speed = 5 
+ 
+y=0 
+s=random.randint(50,750)####### 
+# Main game loop 
+running = True 
+while running: 
+    # Event handling 
+    for event in pygame.event.get(): 
+        if event.type == pygame.QUIT: 
+            running = False 
+ 
+    # Key presses handling 
+    keys = pygame.key.get_pressed() 
+    if keys[pygame.K_LEFT]: 
+        square_x -= speed 
+    if keys[pygame.K_RIGHT]: 
+        square_x += speed 
+    # Fill the screen with black color 
+    screen.fill(BLACK) 
+ 
+    y=y+2.5
+    if y==550.0: 
+        print("Ð’Ñ‹ Ð¿Ñ€Ð¾Ð¸Ð³Ñ€Ð°Ð»Ð¸") 
+        y=0 
+        s=random.randint(50,750) 
+    elif s<=square_x+50 and s>=square_x-50  and y>=square_y-50 and y<=square_y+50: 
+        print("Ð’Ñ‹ Ð²Ñ‹Ð¸Ð³Ñ€Ð°Ð»Ð¸") 
+        y=0 
+        s=random.randint(50,750) 
+    pygame.draw.rect(screen, RED, (square_x, square_y, square_size, square_size)) 
+    pygame.draw.rect(screen, RED, (s, y, square_size, square_size))####### 
+ 
+    # Update the display 
+    pygame.display.flip() 
+ 
+    # Cap the frame rate 
+    pygame.time.Clock().tick(60) 
+ 
+# Quit Pygame 
+pygame.quit() 
+sys.exit()
