@@ -80,18 +80,22 @@ screen_width = 800
 screen_height = 600 
 screen = pygame.display.set_mode((screen_width, screen_height)) 
 pygame.display.set_caption("Pygame Sample") 
- 
+font = pygame.font.Font(None, 36)##### 
 # Set up colors 
 BLACK = (0, 0, 0) 
 RED = (255, 0, 0) 
- 
+r=RED 
+center=(750,50) 
 # Set up the initial position and speed of the square 
 square_size = 50 
 square_x = (screen_width - square_size) // 2 
-square_y = screen_height - square_size
-speed = 5 
+square_y = (screen_height - square_size) 
+speed = 4 
  
+k=2
+Objekt2=0 
 y=0 
+Objekt3="" 
 s=random.randint(50,750)####### 
 # Main game loop 
 running = True 
@@ -110,18 +114,40 @@ while running:
     # Fill the screen with black color 
     screen.fill(BLACK) 
  
-    y=y+2.5
-    if y==550.0: 
-        print("Вы проиграли") 
+    # Draw the red square 
+    y=y+k####### 
+    if y==550.0:
         y=0 
-        s=random.randint(50,750) 
+        s=random.randint(50,700) 
+        Objekt2=Objekt2-1 
+        if Objekt2==2 or Objekt2==5 or Objekt2==8 or Objekt2==11 or Objekt2==14: 
+            k=k-1 
     elif s<=square_x+50 and s>=square_x-50  and y>=square_y-50 and y<=square_y+50: 
-        print("Вы выиграли") 
         y=0 
         s=random.randint(50,750) 
+        Objekt2=Objekt2+1 
+        if Objekt2==3 or Objekt2==6 or Objekt2==9 or Objekt2==12 or Objekt2==15: 
+            k=k+1
+    text=font.render(f"{Objekt2}",True,r) 
+    text_rect=text.get_rect(center=(750,50)) 
+    screen.blit(text,text_rect) 
     pygame.draw.rect(screen, RED, (square_x, square_y, square_size, square_size)) 
     pygame.draw.rect(screen, RED, (s, y, square_size, square_size))####### 
- 
+    text=font.render(f"{Objekt3}",True,r) 
+    text_rect=text.get_rect(center=(400,300)) 
+    screen.blit(text,text_rect) 
+    if Objekt2==15: 
+        RED=(0,0,0) 
+        k=0 
+        Objekt2="" 
+        r=(255,255,255) 
+        Objekt3="Вы выиграли" 
+    elif Objekt2==-2: 
+        RED=(0,0,0) 
+        k=0 
+        Objekt2="" 
+        r=(255,255,255) 
+        Objekt3="Вы проиграли" 
     # Update the display 
     pygame.display.flip() 
  
