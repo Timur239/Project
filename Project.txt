@@ -90,9 +90,10 @@ center=(750,50)
 square_size = 50 
 square_x = (screen_width - square_size) // 2 
 square_y = (screen_height - square_size) 
-speed = 4 
+speed = 5 
  
 k=2
+z=3
 Objekt2=0 
 y=0 
 Objekt3="" 
@@ -116,20 +117,24 @@ while running:
  
     # Draw the red square 
     y=y+k####### 
-    if y==550.0:
-        y=0 
-        s=random.randint(50,700) 
-        Objekt2=Objekt2-1 
-        if Objekt2==2 or Objekt2==5 or Objekt2==8 or Objekt2==11 or Objekt2==14: 
-            k=k-1 
+    if y<=600.0 and y>=550.0:
+        y=0
+        z-=1
+        if Objekt2==3 or Objekt2==6 or Objekt2==9 or Objekt2==12:
+            k-=1
+            s=random.randint(50,700)
+        s=random.randint(50,700)
     elif s<=square_x+50 and s>=square_x-50  and y>=square_y-50 and y<=square_y+50: 
         y=0 
         s=random.randint(50,750) 
         Objekt2=Objekt2+1 
         if Objekt2==3 or Objekt2==6 or Objekt2==9 or Objekt2==12 or Objekt2==15: 
             k=k+1
-    text=font.render(f"{Objekt2}",True,r) 
-    text_rect=text.get_rect(center=(750,50)) 
+    text=font.render(f"{Objekt2}",True,r)
+    text_rect=text.get_rect(center=(750,50))
+    screen.blit(text,text_rect)
+    text=font.render(f"{z}",True,r)
+    text_rect=text.get_rect(center=(50,50))
     screen.blit(text,text_rect) 
     pygame.draw.rect(screen, RED, (square_x, square_y, square_size, square_size)) 
     pygame.draw.rect(screen, RED, (s, y, square_size, square_size))####### 
@@ -142,7 +147,7 @@ while running:
         Objekt2="" 
         r=(255,255,255) 
         Objekt3="Вы выиграли" 
-    elif Objekt2==-2: 
+    elif z==0: 
         RED=(0,0,0) 
         k=0 
         Objekt2="" 
