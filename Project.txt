@@ -71,94 +71,83 @@ end.
 
 import pygame 
 import sys 
-import random ##### 
-# Initialize Pygame 
+import random 
 pygame.init() 
- 
-# Set up the screen 
 screen_width = 800 
 screen_height = 600 
 screen = pygame.display.set_mode((screen_width, screen_height)) 
 pygame.display.set_caption("Pygame Sample") 
-font = pygame.font.Font(None, 36)##### 
-# Set up colors 
-BLACK = (0, 0, 0) 
+font = pygame.font.Font(None, 36) 
+WHITE = (255, 255, 255) 
 RED = (255, 0, 0) 
-r=RED 
-center=(750,50) 
-# Set up the initial position and speed of the square 
+r = RED 
+center = (750, 50) 
+image = pygame.image.load(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\кот.png") 
+image = pygame.transform.scale(image, (100, 50))
+image2 = pygame.image.load(r"C:\Users\solovyevta.26\Downloads\мышь.png") 
+image2 = pygame.transform.scale(image2, (50, 50))
 square_size = 50 
 square_x = (screen_width - square_size) // 2 
 square_y = (screen_height - square_size) 
 speed = 5 
- 
-k=2
-z=3
-Objekt2=0 
-y=0 
-Objekt3="" 
-s=random.randint(50,750)####### 
-# Main game loop 
+k = 2 
+z = 3 
+Objekt2 = 0 
+y = 0 
+Objekt3 = "" 
+s = random.randint(50, 700) 
 running = True 
 while running: 
-    # Event handling 
     for event in pygame.event.get(): 
         if event.type == pygame.QUIT: 
             running = False 
- 
-    # Key presses handling 
     keys = pygame.key.get_pressed() 
     if keys[pygame.K_LEFT]: 
         square_x -= speed 
     if keys[pygame.K_RIGHT]: 
         square_x += speed 
-    # Fill the screen with black color 
-    screen.fill(BLACK) 
- 
-    # Draw the red square 
-    y=y+k####### 
-    if y<=600.0 and y>=550.0:
-        y=0
-        z-=1
-        if Objekt2==3 or Objekt2==6 or Objekt2==9 or Objekt2==12:
-            k-=1
-            s=random.randint(50,700)
-        s=random.randint(50,700)
-    elif s<=square_x+50 and s>=square_x-50  and y>=square_y-50 and y<=square_y+50: 
-        y=0 
-        s=random.randint(50,750) 
-        Objekt2=Objekt2+1 
-        if Objekt2==3 or Objekt2==6 or Objekt2==9 or Objekt2==12 or Objekt2==15: 
-            k=k+1
-    text=font.render(f"{Objekt2}",True,r)
-    text_rect=text.get_rect(center=(750,50))
-    screen.blit(text,text_rect)
-    text=font.render(f"{z}",True,r)
-    text_rect=text.get_rect(center=(50,50))
-    screen.blit(text,text_rect) 
-    pygame.draw.rect(screen, RED, (square_x, square_y, square_size, square_size)) 
-    pygame.draw.rect(screen, RED, (s, y, square_size, square_size))####### 
-    text=font.render(f"{Objekt3}",True,r) 
-    text_rect=text.get_rect(center=(400,300)) 
-    screen.blit(text,text_rect) 
-    if Objekt2==15: 
-        RED=(0,0,0) 
-        k=0 
-        Objekt2="" 
-        r=(255,255,255) 
-        Objekt3="Вы выиграли" 
-    elif z==0: 
-        RED=(0,0,0) 
-        k=0 
-        Objekt2="" 
-        r=(255,255,255) 
-        Objekt3="Вы проиграли" 
-    # Update the display 
+    screen.fill(WHITE) 
+    y += k 
+    if y <= 600.0 and y >= 550.0: 
+        y = 0 
+        z -= 1
+        Objekt2 -= 1
+        if Objekt2 == 2 or Objekt2 == 5 or Objekt2 == 8 or Objekt2 == 11:
+            k -= 1 
+            s = random.randint(50, 700)
+        if Objekt2 == -1:
+            Objekt2 = 0
+        s = random.randint(50, 700) 
+    elif s <= square_x + 50 and s >= square_x - 50 and y >= square_y - 50 and y <= square_y + 50: 
+        y = 0 
+        s = random.randint(50, 700) 
+        Objekt2 += 1 
+        if Objekt2 == 3 or Objekt2 == 6 or Objekt2 == 9 or Objekt2 == 12 or Objekt2 == 15: 
+            k += 1 
+    text = font.render(f"{Objekt2}", True, r) 
+    text_rect = text.get_rect(center=(750, 50)) 
+    screen.blit(text, text_rect) 
+    text = font.render(f"{z}", True, r) 
+    text_rect = text.get_rect(center=(50, 50)) 
+    screen.blit(text, text_rect) 
+    screen.blit(image, (square_x, square_y)) 
+    screen.blit(image2, (s, y)) 
+    text = font.render(f"{Objekt3}", True, r) 
+    text_rect = text.get_rect(center=(400, 300)) 
+    screen.blit(text, text_rect)
+    if Objekt2 == 15: 
+        k = 0 
+        Objekt2 = ""
+        z = ""
+        r = (0, 0, 0) 
+        Objekt3 = "Вы выиграли" 
+    elif z == 0: 
+        k = 0 
+        Objekt2 = ""
+        z = ""
+        r = (0, 0, 0) 
+        Objekt3 = "Вы проиграли" 
     pygame.display.flip() 
- 
-    # Cap the frame rate 
-    pygame.time.Clock().tick(60) 
- 
-# Quit Pygame 
+    pygame.time.Clock().tick(60)  
 pygame.quit() 
 sys.exit()
