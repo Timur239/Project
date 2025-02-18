@@ -71,8 +71,7 @@ end.
 
 import pygame 
 import sys 
-import random 
-
+import random
 pygame.init() 
 screen_width = 800 
 screen_height = 600 
@@ -81,13 +80,13 @@ pygame.display.set_caption("Pygame Sample")
 font = pygame.font.Font(None, 36) 
 WHITE = (255, 255, 255) 
 RED = (255, 0, 0) 
-r = RED 
-center = (750, 50) 
-image = pygame.image.load(r"c:\Users\user\Pictures\GOPR0148.JPG") 
+image = pygame.image.load(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\кот.png") 
 image = pygame.transform.scale(image, (100, 50))
-image2 = pygame.image.load(r"c:\Users\user\Pictures\GOPR0148.JPG") 
+image2 = pygame.image.load(r"C:\Users\solovyevta.26\Downloads\мышь.png") 
 image2 = pygame.transform.scale(image2, (50, 50))
-square_size = 50 
+catch_sound = pygame.mixer.Sound(r"C:\Users\solovyevta.26\Downloads\t4pzv4n4k_ch3p3-ch3p3-ch1p1-ch1p1-d5b3-d5b3-d1b1-d1b1.mp3")
+pygame.mixer.music.load(r"C:\Users\solovyevta.26\Downloads\t4pzv4n4k_ch3p3-ch3p3-ch1p1-ch1p1-d5b3-d5b3-d1b1-d1b1.mp3")
+square_size = 50
 square_x = (screen_width - square_size) // 2 
 square_y = (screen_height - square_size) 
 speed = 5 
@@ -98,7 +97,7 @@ y = 0
 Objekt3 = "" 
 s = random.randint(50, 700) 
 running = True 
-
+music_playing = False
 while running: 
     for event in pygame.event.get(): 
         if event.type == pygame.QUIT: 
@@ -112,11 +111,14 @@ while running:
 
     screen.fill(WHITE) 
     y += k 
-    if y <= 600.0 and y >= 550.0: 
+    if y <= 600.0 and y >= 550.0:
         y = 0 
         z -= 1
         Objekt2 -= 1
-        if Objekt2 == 2 or Objekt2 == 5 or Objekt2 == 8 or Objekt2 == 11:
+        if music_playing:
+            pygame.mixer.music.stop()
+            music_playing = False
+        if Objekt2 in [2, 5, 8, 11]:
             k -= 1 
             s = random.randint(50, 700)
         if Objekt2 == -1:
@@ -125,25 +127,29 @@ while running:
     elif s <= square_x + 50 and s >= square_x - 50 and y >= square_y - 50 and y <= square_y + 50: 
         y = 0 
         s = random.randint(50, 700) 
-        Objekt2 += 1 
-        if Objekt2 == 3 or Objekt2 == 6 or Objekt2 == 9 or Objekt2 == 12 or Objekt2 == 15: 
-            k += 1 
+        Objekt2 += 1
+        catch_sound.play()
+        if not music_playing:
+            pygame.mixer.music.play()
+            music_playing = True
 
-    text = font.render(f"{Objekt2}", True, r) 
+        if Objekt2 in [3, 6, 9, 12, 15]: 
+            k += 1 
+    text = font.render(f"{Objekt2}", True, RED) 
     text_rect = text.get_rect(center=(750, 50)) 
     screen.blit(text, text_rect) 
 
-    text = font.render(f"{z}", True, r) 
+    text = font.render(f"{z}", True, RED) 
     text_rect = text.get_rect(center=(50, 50)) 
     screen.blit(text, text_rect) 
+
     if Objekt3 != "Вы выиграли" and Objekt3 != "Вы проиграли":
         screen.blit(image, (square_x, square_y)) 
         screen.blit(image2, (s, y)) 
 
-    text = font.render(f"{Objekt3}", True, r) 
+    text = font.render(f"{Objekt3}", True, RED) 
     text_rect = text.get_rect(center=(400, 300)) 
     screen.blit(text, text_rect)
-
     if Objekt2 == 15: 
         k = 0 
         Objekt2 = ""
