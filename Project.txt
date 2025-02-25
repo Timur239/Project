@@ -78,6 +78,8 @@ screen_width = 800
 screen_height = 600
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Pygame Sample")
+background_image = pygame.image.load(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\background.png").convert()
+screen.blit(background_image, (800,600)) 
 font = pygame.font.Font(None, 36)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -173,7 +175,7 @@ while running:
     if Objekt2 == 15:
         k = 0
         Objekt2 = ""
-        z = ""
+        z = 0
         r = (0, 0, 0) 
         Objekt3 = "Вы выиграли"
         catch_sound.stop()
@@ -181,7 +183,7 @@ while running:
     elif z == 0:
         k = 0
         Objekt2 = ""
-        z = ""
+        z = 0
         r = (0, 0, 0) 
         Objekt3 = "Вы проиграли" 
         catch_sound.stop()
