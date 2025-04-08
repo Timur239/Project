@@ -72,14 +72,10 @@ end.
 import pygame
 import sys
 import random
-
 pygame.init()
 screen_width = 800
 screen_height = 600
-screen = pygame.display.set_mode((screen_width, screen_height))
-pygame.display.set_caption("Pygame Sample")
-background_image = pygame.image.load(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\background.png").convert()
-screen.blit(background_image, (800,600)) 
+screen = pygame.display.set_mode((screen_width, screen_height)) 
 font = pygame.font.Font(None, 36)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
@@ -89,22 +85,40 @@ image2 = pygame.image.load(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\
 image2 = pygame.transform.scale(image2, (50, 50))
 image3 = pygame.image.load(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\red-heart.jpg")
 image3 = pygame.transform.scale(image3, (50, 25))
-catch_sound = pygame.mixer.Sound(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\t4pzv4n4k_ch3p3-ch3p3-ch1p1-ch1p1-d5b3-d5b3-d1b1-d1b1.mp3")
+image4 = pygame.image.load(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\mouse king.jpg")
+image4 = pygame.transform.scale(image4, (75, 75))
 catch_sound2 = pygame.mixer.Sound(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\cat_meow_extremely_angry_long_04.mp3")
+catch_sound = pygame.mixer.Sound(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\t4pzv4n4k_ch3p3-ch3p3-ch1p1-ch1p1-d5b3-d5b3-d1b1-d1b1.mp3")
 square_size = 50
 square_x = (screen_width - square_size) // 2
 square_y = screen_height - square_size
-speed = 5
+speed = 10
+im=0
+y1=0
+k1=0
+dop=0
+p=0
 k = 2
 z = 3
+word = "mouse"
+word1 = "mouse_king"
+word2 = "/15"
+word3 = "/3"
+color_change_speed = 2
+current_color_index = 0
+rainbow_colors = [(255, 0, 0),(255, 127, 0),(255, 255, 0),(0, 255, 0), (0, 0, 255),(75, 0, 130),(148, 0, 211)]
 Objekt2 = 0
 y = 0
 Objekt3 = "" 
 s = random.randint(50, 700)
+s1 = random.randint(50, 700)
 running = True
 music_playing = False
 music2_playing = False
-
+vet=0
+J2=0
+pob=0
+kormuse=0
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -118,6 +132,8 @@ while running:
 
     screen.fill(WHITE)
     y += k
+    if kormuse==1:
+        y1+=k1
 
     if y >= screen_height:
         y = 0
@@ -140,56 +156,124 @@ while running:
 
         if Objekt2 == -1:
             Objekt2 = 0
+    elif y1>= screen_height:
+        y1=0
+        kormuse=0
+        z -= 1
+        p=0
 
     elif s <= square_x + square_size and s >= square_x - square_size and y >= square_y - square_size and y <= square_y + square_size:
         y = 0
-        s = random.randint(50, 700)
+        s = random.randint(50,700)
         Objekt2 += 1
-        
         if music2_playing:
             catch_sound2.stop()
             music2_playing = False
-        
         if not music_playing:
             catch_sound.play()
             music_playing = True
-
         if Objekt2 in [3, 6, 9, 12, 15]:
             k += 1
-
+            if J2!=3:
+                kormuse=1
+    if kormuse==1 and dop==0:
+        k1=random.randint(k,2*k)
+        p=1
+    if s1 <= square_x + square_size and s1 >= square_x - square_size and y1 >= square_y - square_size and y1 <= square_y + square_size and dop==0:
+        if J2!=3:
+            J2+=1
+        y1=0
+        p=0
+        s1 = random.randint(50,700)
+        kormuse=0
     for i in range(z):
         screen.blit(image3, (10 + i * (image3.get_width() + 1), 10))
     text = font.render(f"{Objekt2}", True, RED)
-    text_rect = text.get_rect(center=(750, 50))
+    text_rect = text.get_rect(center=(750, 10))
     screen.blit(text, text_rect)
-
-    
+    text = font.render(f"{word}", True, RED)
+    text_rect = text.get_rect(center=(702, 10))
+    screen.blit(text, text_rect)
+    text = font.render(f"{word2}", True, RED)
+    text_rect = text.get_rect(center=(775, 10))
+    screen.blit(text, text_rect)
+    if dop==0:
+        text = font.render(f"{J2}", True, RED)
+        text_rect = text.get_rect(center=(762,60))
+        screen.blit(text, text_rect)
+        text = font.render(f"{word1}", True, RED)
+        text_rect = text.get_rect(center=(682, 60))
+        screen.blit(text, text_rect)
+        text = font.render(f"{word3}", True, RED)
+        text_rect = text.get_rect(center=(780, 60))
+        screen.blit(text, text_rect)
+    if p==1:
+        screen.blit(image4,(s1,y1))
     if Objekt3 != "Вы выиграли" and Objekt3 != "Вы проиграли":
         screen.blit(image, (square_x, square_y)) 
-        screen.blit(image2, (s, y))
-
-    text = font.render(f"{Objekt3}", True, RED) 
-    text_rect = text.get_rect(center=(400, 300)) 
-    screen.blit(text, text_rect)
-
-    if Objekt2 == 15:
+        screen.blit(image2, (s,y))
+    if Objekt2 == 15 and J2==3:
+        image2 = pygame.image.load(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\mouse king.jpg")
+        image2 = pygame.transform.scale(image2, (75, 75))
+        speed=10
+        z=5
+        k=10
+        dop=1
+        images_changed = True 
+        if Objekt2 == 15 and images_changed:
+            Objekt2 = 0
+            dop = 1
+    if vet==1:
+        current_color = rainbow_colors[current_color_index]
+        current_color_index = (current_color_index + 1) % len(rainbow_colors)
+        text = font.render(f"{Objekt3}", True, current_color) 
+        text_rect = text.get_rect(center=(400, 300)) 
+        screen.blit(text, text_rect)
+        pygame.time.delay(100)
+    else:
+        text = font.render(f"{Objekt3}", True, RED) 
+        text_rect = text.get_rect(center=(400, 300)) 
+        screen.blit(text, text_rect)
+    if Objekt2 == 15 and J2!=3:
+        k = 0
+        Objekt2 = ""
+        word = ""
+        word1 = ""
+        word2 = ""
+        word3 = ""
+        z = 0
+        r = (0, 0, 0) 
+        Objekt3 = "Вы выиграли"
+        catch_sound.stop()
+        J2=""
+        pob=1
+    elif z == 0 and pob!=1:
+        k = 0
+        Objekt2 = ""
+        word = ""
+        word1 = ""
+        word2 = ""
+        word3 = ""
+        z = 0
+        r = (0, 0, 0) 
+        Objekt3 = "Вы проиграли" 
+        catch_sound.stop()
+        J2=""
+    elif Objekt2 == 10 and dop ==1:
         k = 0
         Objekt2 = ""
         z = 0
         r = (0, 0, 0) 
         Objekt3 = "Вы выиграли"
         catch_sound.stop()
-
-    elif z == 0:
-        k = 0
-        Objekt2 = ""
-        z = 0
-        r = (0, 0, 0) 
-        Objekt3 = "Вы проиграли" 
-        catch_sound.stop()
-
+        vet=1
+        pob=1
+        J2=""
+        word = ""
+        word1 = ""
+        word2 = ""
+        word3 = ""
     pygame.display.flip()
     pygame.time.Clock().tick(60)
-
 pygame.quit()
 sys.exit()
