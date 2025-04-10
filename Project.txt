@@ -69,16 +69,21 @@ end.
 
 
 
+#Подключение библиотек
 import pygame
 import sys
 import random
-pygame.init()
+pygame.init()  #Открытие окна
+#Размеры окна:
 screen_width = 800
 screen_height = 600
+#Открытие экрана:
 screen = pygame.display.set_mode((screen_width, screen_height)) 
 font = pygame.font.Font(None, 36)
+#Некоторые цвета:
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
+#Картинки и музыка:
 image = pygame.image.load(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\кот.png")
 image = pygame.transform.scale(image, (100, 50))
 image2 = pygame.image.load(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\мышь.jpg")
@@ -89,36 +94,39 @@ image4 = pygame.image.load(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\
 image4 = pygame.transform.scale(image4, (75, 75))
 catch_sound2 = pygame.mixer.Sound(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\cat_meow_extremely_angry_long_04.mp3")
 catch_sound = pygame.mixer.Sound(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\t4pzv4n4k_ch3p3-ch3p3-ch1p1-ch1p1-d5b3-d5b3-d1b1-d1b1.mp3")
-square_size = 50
-square_x = (screen_width - square_size) // 2
-square_y = screen_height - square_size
-speed = 10
-im=0
-y1=0
-k1=0
-dop=0
-p=0
-k = 2
-z = 3
+square_size = 50  #Некоторая переменная для заведения координат кота
+square_x = (screen_width - square_size) // 2  #объявляем координату кота по оси Ox
+square_y = screen_height - square_size        #объявляем координату кота по оси Oy
+catSpeed = 10    #Скорость кота
+mouseKingCoord=0    #Координата мышиного короля
+mouseKingSpeed=0    #Скорость мышиного короля
+isAbleToDop=0   #Переменная, проверяющая, соблюдены ли условия для запуска доп уровня
+isMKActive=0     #Переменная, отслеживающая мышиного короля
+mouseSpeed = 2    #Скорость обычной мыши
+health = 3    #Количество жизней
+#Некоторый текст на экране:
 word = "mouse"
 word1 = "mouse_king"
 word2 = "/15"
 word3 = "/3"
-color_change_speed = 2
-current_color_index = 0
-rainbow_colors = [(255, 0, 0),(255, 127, 0),(255, 255, 0),(0, 255, 0), (0, 0, 255),(75, 0, 130),(148, 0, 211)]
-Objekt2 = 0
-y = 0
-Objekt3 = "" 
-s = random.randint(50, 700)
-s1 = random.randint(50, 700)
-running = True
+color_change_speed = 2   #Скорость изменения цвета текста
+current_color_index = 0 #Переменная для цвета
+rainbow_colors = [(255, 0, 0),(255, 127, 0),(255, 255, 0),(0, 255, 0), (0, 0, 255),(75, 0, 130),(148, 0, 211)]   #Возможные цвета текста
+Objekt2 = 0   #Количество пойманных обычных мышей
+mouseSpawnCoord = 0 #Координата появления обычной мыши
+Objekt3 = ""   #Текст по окончании игры
+Objekt4 = ""   #Текст по окончании игры
+randomMousePosition = random.randint(50, 700) #Переменная для появления обычной мыши
+randomMouseKingPosition = random.randint(50, 700)  #Переменная для появления мышиного короля
+running = True #Переменная для экрана
+#Флаги на музыку:
 music_playing = False
 music2_playing = False
-vet=0
-J2=0
-pob=0
-kormuse=0
+isAbleToChangeColor=0 #Переменная, отвечающая за изменение цвета текста
+mouseKingCount=0  #Счетсчик мышиных королей
+isWin=0 #Проверяет, выиграли ли мы на доп уровне
+isAbleToSpawn=0  #Проверяет условие для появления короля
+#Запуск экрана:
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -126,21 +134,21 @@ while running:
 
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT]:
-        square_x -= speed
+        square_x -= catSpeed
     if keys[pygame.K_RIGHT]:
-        square_x += speed
+        square_x += catSpeed
 
     screen.fill(WHITE)
-    y += k
-    if kormuse==1:
-        y1+=k1
+    mouseSpawnCoord += mouseSpeed
+    if isAbleToSpawn==1:
+        mouseKingCoord+=mouseKingSpeed
 
-    if y >= screen_height:
-        y = 0
-        z -= 1
+    if mouseSpawnCoord >= screen_height:  #Если мы не поймали мышь:
+        mouseSpawnCoord = 0
+        health -= 1
         Objekt2 -= 1
 
-        if music_playing:
+        if music_playing: #Условия для корректной работы музыки
             catch_sound2.play()
 
         if music_playing:
@@ -151,43 +159,44 @@ while running:
             catch_sound2.play()
             music2_playing = True
 
-        if Objekt2 in [2, 5, 8, 11]:
-            k -= 1
+        if Objekt2 in [2, 5, 8, 11]: #Изменение скорости мыши, в зависимости от ее числа
+            mouseSpeed -= 1
 
-        if Objekt2 == -1:
+        if Objekt2 == -1:  #Условие на неотрицательность числа мышей
             Objekt2 = 0
-    elif y1>= screen_height:
-        y1=0
-        kormuse=0
-        z -= 1
-        p=0
+    elif mouseKingCoord>= screen_height: #Если мы не ловим короля
+        mouseKingCoord=0
+        isAbleToSpawn=0
+        health -= 1
+        isMKActive=0
 
-    elif s <= square_x + square_size and s >= square_x - square_size and y >= square_y - square_size and y <= square_y + square_size:
-        y = 0
-        s = random.randint(50,700)
+    elif randomMousePosition <= square_x + square_size and randomMousePosition >= square_x - square_size and mouseSpawnCoord >= square_y - square_size and mouseSpawnCoord <= square_y + square_size: #Условие на падение мыши
+        mouseSpawnCoord = 0
+        randomMousePosition = random.randint(50,700)
         Objekt2 += 1
-        if music2_playing:
+        if music2_playing: #Условие на смену музыки
             catch_sound2.stop()
             music2_playing = False
         if not music_playing:
             catch_sound.play()
             music_playing = True
-        if Objekt2 in [3, 6, 9, 12, 15]:
-            k += 1
-            if J2!=3:
-                kormuse=1
-    if kormuse==1 and dop==0:
-        k1=random.randint(k,2*k)
-        p=1
-    if s1 <= square_x + square_size and s1 >= square_x - square_size and y1 >= square_y - square_size and y1 <= square_y + square_size and dop==0:
-        if J2!=3:
-            J2+=1
-        y1=0
-        p=0
-        s1 = random.randint(50,700)
-        kormuse=0
-    for i in range(z):
+        if Objekt2 in [3, 6, 9, 12]:  #Изменение скорости мыши, взависимости от ее числа
+            mouseSpeed += 1
+            if mouseKingCount!=3: #Если мы еще не словили 3-х королей
+                isAbleToSpawn=1
+    if isAbleToSpawn==1 and isAbleToDop==0:  #Если мы еще не словили 3-х королей
+        mouseKingSpeed=random.randint(mouseSpeed,2*mouseSpeed)
+        isMKActive=1
+    if randomMouseKingPosition <= square_x + square_size and randomMouseKingPosition >= square_x - square_size and mouseKingCoord >= square_y - square_size and mouseKingCoord <= square_y + square_size and isAbleToDop==0:  #Условие на падение короля
+        if mouseKingCount!=3: #Условие на счетсчик королей
+            mouseKingCount+=1
+        mouseKingCoord=0
+        isMKActive=0
+        randomMouseKingPosition = random.randint(50,700)
+        isAbleToSpawn=0
+    for i in range(health): #Условие на сердца
         screen.blit(image3, (10 + i * (image3.get_width() + 1), 10))
+    #Текст на экране:
     text = font.render(f"{Objekt2}", True, RED)
     text_rect = text.get_rect(center=(750, 10))
     screen.blit(text, text_rect)
@@ -197,8 +206,8 @@ while running:
     text = font.render(f"{word2}", True, RED)
     text_rect = text.get_rect(center=(775, 10))
     screen.blit(text, text_rect)
-    if dop==0:
-        text = font.render(f"{J2}", True, RED)
+    if isAbleToDop==0: #Условие на текст
+        text = font.render(f"{mouseKingCount}", True, RED)
         text_rect = text.get_rect(center=(762,60))
         screen.blit(text, text_rect)
         text = font.render(f"{word1}", True, RED)
@@ -207,23 +216,24 @@ while running:
         text = font.render(f"{word3}", True, RED)
         text_rect = text.get_rect(center=(780, 60))
         screen.blit(text, text_rect)
-    if p==1:
-        screen.blit(image4,(s1,y1))
-    if Objekt3 != "Вы выиграли" and Objekt3 != "Вы проиграли":
+    if isMKActive==1: #Условие на появление короля
+        screen.blit(image4,(randomMouseKingPosition,mouseKingCoord))
+    if Objekt3 != "Вы выиграли" and Objekt3 != "Вы проиграли": #Условие на появление на экране кота и мыши
         screen.blit(image, (square_x, square_y)) 
-        screen.blit(image2, (s,y))
-    if Objekt2 == 15 and J2==3:
-        image2 = pygame.image.load(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\mouse king.jpg")
-        image2 = pygame.transform.scale(image2, (75, 75))
-        speed=10
-        z=5
-        k=10
-        dop=1
-        images_changed = True 
-        if Objekt2 == 15 and images_changed:
+        screen.blit(image2, (randomMousePosition,mouseSpawnCoord))
+    if Objekt2 == 15 and mouseKingCount==3: #Переход на доп уровень
+        image2 = pygame.image.load(r"\\sch239.net\UserHomes\Students\26\2\solovyevta.26\mouse king.jpg") #Картинка короля
+        image2 = pygame.transform.scale(image2, (75, 75))  #Ее размер
+        catSpeed=10 #Скорость кота
+        health=5 #Количество жизней
+        mouseSpeed=10  #Скорость короля
+        isAbleToDop=1  #Включение доп уровня
+        images_changed = True #Смена картин
+        if Objekt2 == 15 and images_changed: #Условие на новый экран
             Objekt2 = 0
-            dop = 1
-    if vet==1:
+            isAbleToDop = 1
+            word2 = "/10"
+    if isAbleToChangeColor==1: #Условие на смену цветов
         current_color = rainbow_colors[current_color_index]
         current_color_index = (current_color_index + 1) % len(rainbow_colors)
         text = font.render(f"{Objekt3}", True, current_color) 
@@ -234,46 +244,51 @@ while running:
         text = font.render(f"{Objekt3}", True, RED) 
         text_rect = text.get_rect(center=(400, 300)) 
         screen.blit(text, text_rect)
-    if Objekt2 == 15 and J2!=3:
-        k = 0
+        text = font.render(f"{Objekt4}", True, RED) 
+        text_rect = text.get_rect(center=(400, 355)) 
+        screen.blit(text, text_rect)
+    if Objekt2 == 15 and mouseKingCount!=3: #Условие в случае выигрыша, но не перехода на доп уровень
+        mouseSpeed = 0
         Objekt2 = ""
         word = ""
         word1 = ""
         word2 = ""
         word3 = ""
-        z = 0
+        health = 0
         r = (0, 0, 0) 
         Objekt3 = "Вы выиграли"
+        Objekt4 = "(Не совсем)"
         catch_sound.stop()
-        J2=""
-        pob=1
-    elif z == 0 and pob!=1:
-        k = 0
+        mouseKingCount=""
+        isWin=1
+    elif health == 0 and isWin!=1:  #Условие в случае проигрыша
+        mouseSpeed = 0
         Objekt2 = ""
         word = ""
         word1 = ""
         word2 = ""
         word3 = ""
-        z = 0
+        health = 0
         r = (0, 0, 0) 
         Objekt3 = "Вы проиграли" 
         catch_sound.stop()
-        J2=""
-    elif Objekt2 == 10 and dop ==1:
-        k = 0
+        mouseKingCount=""
+    elif Objekt2 == 10 and isAbleToDop ==1:  #Условие в случае выигрыша и перехода на доп уровень
+        mouseSpeed = 0
         Objekt2 = ""
-        z = 0
+        health = 0
         r = (0, 0, 0) 
         Objekt3 = "Вы выиграли"
         catch_sound.stop()
-        vet=1
-        pob=1
-        J2=""
+        isAbleToChangeColor=1
+        isWin=1
+        mouseKingCount=""
         word = ""
         word1 = ""
         word2 = ""
         word3 = ""
-    pygame.display.flip()
-    pygame.time.Clock().tick(60)
+    pygame.display.flip()#Обновление экрана
+    pygame.time.Clock().tick(60) #Частота скорости картинок
+#Окончание игры:
 pygame.quit()
 sys.exit()
