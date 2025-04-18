@@ -65,17 +65,18 @@ end.
 
 
 
-
-
-
 #Подключение библиотек
 import pygame
 import sys
+import shelve
 import random
 pygame.init()  #Открытие окна
 #Размеры окна:
 screen_width = 800
 screen_height = 600
+#Выводим результаты прошлой игры, если таковые имеются
+FILE = open("Результаты.txt")
+result = FILE.readline()
 #Открытие экрана:
 screen = pygame.display.set_mode((screen_width, screen_height)) 
 font = pygame.font.Font(None, 36)
@@ -96,7 +97,7 @@ catch_sound = pygame.mixer.Sound(r"t4pzv4n4k_ch3p3-ch3p3-ch1p1-ch1p1-d5b3-d5b3-d
 square_size = 50  #Некоторая переменная для заведения координат кота
 square_x = (screen_width - square_size) // 2  #Объявляем координату кота по оси Ox
 square_y = screen_height - square_size        #Oбъявляем координату кота по оси Oy
-catSpeed = 20    #Скорость кота]
+catSpeed = 20    #Скорость кота
 KingFlag = True  #Флаг на короля
 mouseKingCoord=0    #Координата мышиного короля
 EndFlag = True      #Флаг на проверку, завершена ли игра
@@ -112,6 +113,7 @@ word = "mouse"
 word1 = "mouse_king"
 word2 = "/" + str(maxCountMouses)
 word3 = "/" + str(health)
+word4 = "Прошлый результат:"
 color_change_speed = 2   #Скорость изменения цвета текста
 current_color_index = 0 #Переменная для цвета
 rainbow_colors = [(255, 0, 0),(255, 127, 0),(255, 255, 0),(0, 255, 0), (0, 0, 255),(75, 0, 130),(148, 0, 211)]   #Возможные цвета текста
@@ -211,6 +213,12 @@ while running:
     text = font.render(f"{word2}", True, RED)
     text_rect = text.get_rect(center=(775, 10))
     screen.blit(text, text_rect)
+    text = font.render(f"{result}", True, RED)
+    text_rect = text.get_rect(center=(93, 100))
+    screen.blit(text, text_rect)
+    text = font.render(f"{word4}", True, RED)
+    text_rect = text.get_rect(center=(125, 50))
+    screen.blit(text, text_rect)
     if isAbleToDop==0: #Условие на текст
         text = font.render(f"{mouseKingCount}", True, RED)
         text_rect = text.get_rect(center=(762,60))
@@ -256,6 +264,8 @@ while running:
         EndFlag = False
         #Зануляем переменные, чтобы экран в конце был чистым
         mouseSpeed = 0
+        result = ""
+        word4 = ""
         CountMouses = ""
         word = ""
         word1 = ""
@@ -269,10 +279,14 @@ while running:
         catch_sound.stop()
         mouseKingCount=""
         isWin=1
+        with open("Результаты.txt", "w") as file:
+              file.write("Прогресс: 50%")
     elif health == 0 and isWin!=1:  #Условие в случае проигрыша
         EndFlag = False
         #Зануляем переменные, чтобы экран в конце был чистым
         mouseSpeed = 0
+        result = ""
+        word4 = ""
         CountMouses = ""
         word = ""
         word1 = ""
@@ -283,10 +297,14 @@ while running:
         EndText = "Вы проиграли" #Текст на экране 
         catch_sound.stop()
         mouseKingCount=""
+        with open("Результаты.txt", "w") as file:
+              file.write("Прогресс: 0%")
     elif CountMouses == 10 and isAbleToDop ==1:  #Условие в случае выигрыша и перехода на доп уровень
         EndFlag = False
         #Зануляем переменные, чтобы экран в конце был чистым
         mouseSpeed = 0
+        result = ""
+        word4 = ""
         CountMouses = ""
         health = 0
         r = (0, 0, 0)
@@ -299,8 +317,11 @@ while running:
         word1 = ""
         word2 = ""
         word3 = ""
+        with open("Результаты.txt", "w") as file:
+              file.write("Прогресс: 100%")
     pygame.display.flip()#Обновление содержимого окна 
     pygame.time.Clock().tick(60) #FPS
 #Окончание игры:
 pygame.quit()
 sys.exit()
+
