@@ -96,7 +96,8 @@ catch_sound = pygame.mixer.Sound(r"t4pzv4n4k_ch3p3-ch3p3-ch1p1-ch1p1-d5b3-d5b3-d
 square_size = 50  #Некоторая переменная для заведения координат кота
 square_x = (screen_width - square_size) // 2  #Объявляем координату кота по оси Ox
 square_y = screen_height - square_size        #Oбъявляем координату кота по оси Oy
-catSpeed = 20    #Скорость кота
+catSpeed = 20    #Скорость кота]
+KingFlag = True  #Флаг на короля
 mouseKingCoord=0    #Координата мышиного короля
 EndFlag = True      #Флаг на проверку, завершена ли игра
 mouseKingSpeed=0    #Скорость мышиного короля
@@ -126,7 +127,7 @@ music_playing = False
 music2_playing = False
 isAbleToChangeColor=0 #Переменная, отвечающая за изменение цвета текста
 mouseKingCount=0  #Счетсчик мышиных королей
-isWin=0 #Проверяет, выиграли ли мы на доп уровне
+isWin=0 #Проверяет, выиграли ли мы
 isAbleToSpawn=0  #Проверяет условие для появления короля
 #Запуск экрана:
 while running:
@@ -163,6 +164,7 @@ while running:
 
         if CountMouses in [2, 5, 8, 11]: #Изменение скорости мыши, в зависимости от ее числа
             mouseSpeed -= 2
+            KingFlag = False
 
         if CountMouses == -1:  #Условие на неотрицательность числа мышей
             CountMouses = 0
@@ -184,8 +186,9 @@ while running:
             music_playing = True
         if CountMouses in [3, 6, 9, 12]:  #Изменение скорости мыши, в зависимости от ее числа
             mouseSpeed += 2
-            if mouseKingCount!=3: #Если мы еще не словили 3-х королей
+            if mouseKingCount!=3 and KingFlag == True: #Если мы еще не словили 3-х королей
                 isAbleToSpawn=1
+            KingFlag = True
     if isAbleToSpawn==1 and isAbleToDop==0:  #Если мы еще не словили 3-х королей
         mouseKingSpeed=random.randint(mouseSpeed,2*mouseSpeed)
         isMKActive=1
@@ -226,7 +229,7 @@ while running:
     if CountMouses == maxCountMouses and mouseKingCount==3: #Переход на доп уровень
         image2 = pygame.image.load(r"mouse king.jpg") #Картинка короля
         image2 = pygame.transform.scale(image2, (75, 75))  #Ее размер
-        catSpeed=10 #Скорость кота
+        catSpeed=20 #Скорость кота
         health=5 #Количество жизней
         mouseSpeed=10  #Скорость короля
         isAbleToDop=1  #Включение доп уровня
