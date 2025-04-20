@@ -92,7 +92,7 @@ image4 = pygame.image.load(r"mouse king.jpg")
 image4 = pygame.transform.scale(image4, (75, 75))
 catch_sound2 = pygame.mixer.Sound(r"cat_meow_extremely_angry_long_04.mp3")
 catch_sound = pygame.mixer.Sound(r"t4pzv4n4k_ch3p3-ch3p3-ch1p1-ch1p1-d5b3-d5b3-d1b1-d1b1.mp3")
-catch_sound3 = pygame.mixer.Sound(r"Mortal Kombat - Maine Theme(original).mp3")
+catch_sound3 = pygame.mixer.Sound(r"Mortal Kombat - Combat Theme (Scorpion).mp3")
 square_size = 50  #Некоторая переменная для заведения координат кота
 square_x = (screen_width - square_size) // 2  #Объявляем координату кота по оси Ox
 square_y = screen_height - square_size        #Oбъявляем координату кота по оси Oy
@@ -105,7 +105,7 @@ isMKActive=0     #Переменная, отслеживающая мышино�
 mouseSpeed = 3    #Скорость обычной мыши
 health = 3    #Количество жизней
 maxCountMouses = 15 #Максимальное количество мышей
-maxCountKingMouses = 15 #Максимальное количество королей на доп уровне
+maxCountKingMouses = 30 #Максимальное количество королей на доп уровне
 #Некоторый текст на экране:
 word = "mouse"
 word1 = "mouse_king"
@@ -129,6 +129,8 @@ isAbleToChangeColor=0 #Переменная, отвечающая за изме�
 mouseKingCount=0  #Счетсчик мышиных королей
 isWin=0 #Проверяет, выиграли ли мы
 isAbleToSpawn=0  #Проверяет условие для появления короля
+progressFlag = False #Флаг на пройденность игры
+NextLevelFlag = True #Флаг для корректной работы счетсчика на 2-ом уровне 
 #Запуск экрана:
 while running:
     for event in pygame.event.get():
@@ -234,20 +236,23 @@ while running:
         screen.blit(image2, (randomMousePosition,mouseSpawnCoord))
     if CountMouses == maxCountMouses and mouseKingCount==3: #Переход на доп уровень
         image2 = pygame.image.load(r"mouse king.jpg") #Картинка короля
+        catch_sound3.play()
+        catch_sound.set_volume(0.0)
+        catch_sound2.set_volume(0.0)
         image2 = pygame.transform.scale(image2, (75, 75))  #Ее размер
+        progressFlag = True
         catSpeed=20 #Скорость кота
         health=5 #Количество жизней
-        mouseSpeed=10  #Скорость короля
+        mouseSpeed=5  #Скорость короля
         isAbleToDop=1  #Включение доп уровня
         images_changed = True #Смена картин
-        if CountMouses == maxCountMouses and images_changed: #Условие на новый экран
-            if music_playing:
-                catch_sound.stop()
-                catch_sound2.stop()
-                catch_sound3.play()
+        if mouseSpeed >5:
+            mouseSpeed = 5
+        if CountMouses == maxCountMouses and images_changed and NextLevelFlag: #Условие на новый экран
             CountMouses = 0
             isAbleToDop = 1
             word2 = "/" + str(maxCountKingMouses)
+        NextLevelFlag = False
     if isAbleToChangeColor==1: #Условие на смену цветов
         current_color = rainbow_colors[current_color_index]
         current_color_index = (current_color_index + 1) % len(rainbow_colors)
@@ -303,9 +308,13 @@ while running:
         catch_sound2.stop()
         catch_sound3.stop()
         mouseKingCount=""
-        with open("Результаты.txt", "w") as file:
+        if progressFlag == True:
+            with open("Результаты.txt", "w") as file:
+              file.write("Прогресс: 50%")
+        else:
+            with open("Результаты.txt", "w") as file:
               file.write("Прогресс: 0%")
-    elif CountMouses == 15 and isAbleToDop ==1:  #Условие в случае выигрыша и перехода на доп уровень
+    elif CountMouses == maxCountKingMouses and isAbleToDop == 1:  #Условие в случае выигрыша и перехода на доп уровень
         EndFlag = False
         #Зануляем переменные, чтобы экран в конце был чистым
         mouseSpeed = 0
@@ -332,4 +341,3 @@ while running:
 #Окончание игры:
 pygame.quit()
 sys.exit()
-
