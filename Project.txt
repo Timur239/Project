@@ -64,11 +64,9 @@ end.
 
 
 
-
 #Подключение библиотек
 import pygame
 import sys
-import shelve
 import random
 pygame.init()  #Открытие окна
 #Размеры окна:
@@ -94,6 +92,7 @@ image4 = pygame.image.load(r"mouse king.jpg")
 image4 = pygame.transform.scale(image4, (75, 75))
 catch_sound2 = pygame.mixer.Sound(r"cat_meow_extremely_angry_long_04.mp3")
 catch_sound = pygame.mixer.Sound(r"t4pzv4n4k_ch3p3-ch3p3-ch1p1-ch1p1-d5b3-d5b3-d1b1-d1b1.mp3")
+catch_sound3 = pygame.mixer.Sound(r"Mortal Kombat - Maine Theme(original).mp3")
 square_size = 50  #Некоторая переменная для заведения координат кота
 square_x = (screen_width - square_size) // 2  #Объявляем координату кота по оси Ox
 square_y = screen_height - square_size        #Oбъявляем координату кота по оси Oy
@@ -101,13 +100,12 @@ catSpeed = 20    #Скорость кота
 KingFlag = True  #Флаг на короля
 mouseKingCoord=0    #Координата мышиного короля
 EndFlag = True      #Флаг на проверку, завершена ли игра
-mouseKingSpeed=0    #Скорость мышиного короля
 isAbleToDop=0   #Переменная, проверяющая, соблюдены ли условия для запуска доп уровня
 isMKActive=0     #Переменная, отслеживающая мышиного короля
 mouseSpeed = 3    #Скорость обычной мыши
 health = 3    #Количество жизней
 maxCountMouses = 15 #Максимальное количество мышей
-maxCountKingMouses = 10 #Максимальное количество королей на доп уровне
+maxCountKingMouses = 15 #Максимальное количество королей на доп уровне
 #Некоторый текст на экране:
 word = "mouse"
 word1 = "mouse_king"
@@ -243,6 +241,10 @@ while running:
         isAbleToDop=1  #Включение доп уровня
         images_changed = True #Смена картин
         if CountMouses == maxCountMouses and images_changed: #Условие на новый экран
+            if music_playing:
+                catch_sound.stop()
+                catch_sound2.stop()
+                catch_sound3.play()
             CountMouses = 0
             isAbleToDop = 1
             word2 = "/" + str(maxCountKingMouses)
@@ -277,6 +279,8 @@ while running:
         EndText = "Вы выиграли"
         EndText1 = "(Не совсем)"
         catch_sound.stop()
+        catch_sound2.stop()
+        catch_sound3.stop()
         mouseKingCount=""
         isWin=1
         with open("Результаты.txt", "w") as file:
@@ -296,10 +300,12 @@ while running:
         r = (0, 0, 0)
         EndText = "Вы проиграли" #Текст на экране 
         catch_sound.stop()
+        catch_sound2.stop()
+        catch_sound3.stop()
         mouseKingCount=""
         with open("Результаты.txt", "w") as file:
               file.write("Прогресс: 0%")
-    elif CountMouses == 10 and isAbleToDop ==1:  #Условие в случае выигрыша и перехода на доп уровень
+    elif CountMouses == 15 and isAbleToDop ==1:  #Условие в случае выигрыша и перехода на доп уровень
         EndFlag = False
         #Зануляем переменные, чтобы экран в конце был чистым
         mouseSpeed = 0
@@ -310,6 +316,8 @@ while running:
         r = (0, 0, 0)
         EndText = "Вы выиграли" #Текст на экране
         catch_sound.stop()
+        catch_sound3.stop()
+        catch_sound2.stop()
         isAbleToChangeColor=1
         isWin=1
         mouseKingCount=""
