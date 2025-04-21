@@ -393,11 +393,6 @@ cat_image_right = pygame.transform.flip(image, True, False)
 current_cat_image = image
 shake_offset = 0 #Смещение экрана
 shake_timer = 0 #Таймер тряски
-level_transition = False
-transition_text1 = "Вы выиграли!"
-transition_text1 = "ИЛИ..."
-transition_timer = 0
-transition_stage = 0
 #Некоторый текст на экране:
 word = "mouse"
 word1 = "mouse_king"
@@ -424,7 +419,6 @@ isAbleToSpawn=0  #Проверяет условие для появления к
 progressFlag = False #Флаг на пройденность игры
 NextLevelFlag = True #Флаг для корректной работы счетсчика на 2-ом уровне
 DopFlag = True
-game_paused = False
 #Запуск экрана:
 while running:
     for event in pygame.event.get():
@@ -444,17 +438,6 @@ while running:
             square_x = screen_width - image.get_width()
 
     screen.fill(WHITE) #Цвет фона
-    if level_transition:
-        text = font.render(transition_text1, True, RED)
-        text_rect = text.get_rect(center=(425, 300))
-        screen.blit(text, text_rect)
-        text = font.render(transition_text2, True, RED)
-        text_rect = text.get_rect(center=(375, 300))
-        screen.blit(text, text_rect)
-        transition_timer -= 1
-        if transition_timer <= 0:
-            level_transition = False
-            game_paused = False
     if shake_timer > 0:
         shake_offset = random.randint(-5, 5)
         shake_timer -= 1
@@ -560,7 +543,7 @@ while running:
         screen.blit(image4,(randomMouseKingPosition,mouseKingCoord))
     if EndFlag == True: #Условие на появление на экране кота и мыши
         screen.blit(current_cat_image, (square_x + shake_offset, square_y)) 
-        screen.blit(image2, (randomMousePosition+ shake_offset,mouseSpawnCoord))
+        screen.blit(image2, (randomMousePosition + shake_offset,mouseSpawnCoord))
     if CountMouses == maxCountMouses and mouseKingCount==3 and NextLevelFlag: #Переход на доп уровень
         image2 = image4 #Картинка короля
         DopFlag = False
@@ -572,9 +555,6 @@ while running:
         health=5 #Количество жизней
         mouseSpeed=5  #Скорость короля
         isAbleToDop=1  #Включение доп уровня
-        level_transition = True
-        transition_taimer = 90
-        game_paused = True
         images_changed = True #Смена картин
         if CountMouses == maxCountMouses and images_changed and NextLevelFlag: #Условие на новый экран
             CountMouses = 0
@@ -669,4 +649,3 @@ while running:
 #Окончание игры:
 pygame.quit()
 sys.exit()
-
