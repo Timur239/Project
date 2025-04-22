@@ -370,3 +370,953 @@ while running:
 #Окончание игры:
 pygame.quit()
 sys.exit()
+
+
+
+
+
+
+
+
+
+
+
+import pygame
+import sys
+import random
+from typing import List, Tuple, Optional
+
+class Game:
+    def __init__(self):
+        pygame.init()
+        self.setup_screen()
+        self.load_assets()
+        self.setup_game_state()
+        
+    def setup_screen(self):
+        """Инициализация экрана игры"""
+        self.screen_width = 800
+        self.screen_height = 600
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.font = pygame.font.Font(None, 36)
+        self.clock = pygame.time.Clock()
+        
+    def load_assets(self):
+        """Загрузка всех ресурсов (изображения, звуки)"""
+        # Цвета
+        self.WHITE = (255, 255, 255)
+        self.RED = (255, 0, 0)
+        
+        # Изображения
+        self.load_images()
+        self.load_sounds()
+        
+    def load_images(self):
+        """Загрузка и масштабирование изображений"""
+        try:
+            # Основные изображения
+            self.cat_image = pygame.transform.scale(pygame.image.load("кот.png"), (100, 50))
+            self.cat_image_right = pygame.transform.flip(self.cat_image, True, False)
+            self.current_cat_image = self.cat_image
+            
+            self.mouse_image = pygame.transform.scale(pygame.image.load("мышь.jpg"), (50, 50))
+            self.heart_image = pygame.transform.scale(pygame.image.load("red-heart.jpg"), (50, 25))
+            self.mouse_king_image = pygame.transform.scale(pygame.image.load("mouse king.jpg"), (75, 75))
+            
+            # Вспышка при поимке мыши
+            self.flash_surface = pygame.Surface((self.screen_width, self.screen_height), pygame.SRCALPHA)
+            self.flash_color = (255, 128, 0)
+        except FileNotFoundError as e:
+            print(f"Ошибка загрузки изображений: {e}")
+            sys.exit()
+            
+    def load_sounds(self):
+        """Загрузка звуковых эффектов"""
+        try:
+            self.catch_sound = pygame.mixer.Sound("t4pzv4n4k_ch3p3-ch3p3-ch1p1-ch1p1-d5b3-d5b3-d1b1-d1b1.mp3")
+            self.miss_sound = pygame.mixer.Sound("cat_meow_extremely_angry_long_04.mp3")
+            self.boss_music = pygame.mixer.Sound("Mortal Kombat - Combat Theme (Scorpion).mp3")
+        except FileNotFoundError as e:
+            print(f"Ошибка загрузки звуков: {e}")
+            # Продолжаем без звуков
+
+    def setup_game_state(self):
+        """Инициализация состояния игры"""
+        # Игровые объекты
+        self.player = Player(self)
+        self.mouse = Mouse(self)
+        self.mouse_king = MouseKing(self)
+        
+        # Состояние игры
+        self.running = True
+        self.game_over = False
+        self.victory = False
+        self.boss_level_unlocked = False
+        self.boss_level_active = False
+        
+        # Загрузка предыдущего результата
+        self.load_previous_result()
+        
+        # Эффекты
+        self.shake_offset = 0
+        self.shake_timer = 0
+        self.flash_alpha = 0
+        
+        # Текст
+        self.setup_text()
+        
+    def setup_text(self):
+        """Настройка текстовых элементов"""
+        self.rainbow_colors = [
+            (255, 0, 0), (255, 127, 0), (255, 255, 0),
+            (0, 255, 0), (0, 0, 255), (75, 0, 130),
+            (148, 0, 211), (0, 0, 0)
+        ]
+        self.current_color_index = 0
+        self.color_change_timer = 0
+        
+        self.end_text = ""
+        self.end_subtext = ""
+        
+    def load_previous_result(self):
+        """Загрузка предыдущего результата из файла"""
+        try:
+            with open("Результаты.txt", "r") as file:
+                self.previous_result = file.readline()
+        except FileNotFoundError:
+            self.previous_result = ""
+
+    def save_result(self, progress: str):
+        """Сохранение текущего результата"""
+        with open("Результаты.txt", "w") as file:
+            file.write(f"Прогресс: {progress}")
+
+    def handle_events(self):
+        """Обработка событий игры"""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+
+    def update(self):
+        """Обновление состояния игры"""
+        if self.game_over:
+            return
+            
+        self.player.update()
+        self.mouse.update()
+        
+        if self.boss_level_active:
+            self.mouse_king.update()
+            
+        # Проверка условий победы/проигрыша
+        self.check_game_conditions()
+        
+        # Обновление эффектов
+        self.update_effects()
+        
+    def update_effects(self):
+        """Обновление визуальных эффектов"""
+        # Эффект тряски
+        if self.shake_timer > 0:
+            self.shake_offset = random.randint(-15, 15)
+            self.shake_timer -= 1
+        else:
+            self.shake_offset = 0
+            
+        # Эффект вспышки
+        if self.flash_alpha > 0:
+            self.flash_alpha -= 5
+            if self.flash_alpha < 0:
+                self.flash_alpha = 0
+                
+        # Анимация радужного текста
+        self.color_change_timer += 1
+        if self.color_change_timer >= 10:
+            self.current_color_index = (self.current_color_index + 1) % len(self.rainbow_colors)
+            self.color_change_timer = 0
+
+    def check_game_conditions(self):
+        """Проверка условий завершения игры"""
+        # Проверка здоровья
+        if self.player.health <= 0:
+            self.game_over = True
+            self.victory = False
+            self.end_text = "Вы проиграли"
+            self.stop_all_sounds()
+            
+            # Сохранение результата
+            progress = "50%" if self.boss_level_unlocked else "0%"
+            self.save_result(progress)
+            return
+            
+        # Проверка победы на обычном уровне
+        if (not self.boss_level_active and 
+            self.mouse.caught_count >= self.mouse.max_count and 
+            self.mouse_king.caught_count >= 3):
+            
+            self.start_boss_level()
+            return
+            
+        # Проверка победы на босс-уровне
+        if (self.boss_level_active and 
+            self.mouse.caught_count >= self.mouse.max_count):
+            
+            self.game_over = True
+            self.victory = True
+            self.end_text = "Вы выиграли"
+            self.end_subtext = ""
+            self.stop_all_sounds()
+            self.save_result("100%")
+
+    def start_boss_level(self):
+        """Активация босс-уровня"""
+        self.boss_level_active = True
+        self.boss_level_unlocked = True
+        
+        # Настройка босс-уровня
+        self.mouse.image = self.mouse_king_image
+        self.mouse.speed = 15
+        self.player.health = 5
+        self.mouse.max_count = 30
+        self.mouse.caught_count = 0
+        
+        # Воспроизведение музыки босса
+        self.boss_music.play()
+        self.catch_sound.set_volume(0.0)
+        self.miss_sound.set_volume(0.0)
+
+    def stop_all_sounds(self):
+        """Остановка всех звуков"""
+        self.catch_sound.stop()
+        self.miss_sound.stop()
+        self.boss_music.stop()
+
+    def render(self):
+        """Отрисовка игры"""
+        self.screen.fill(self.WHITE)
+        
+        if not self.game_over:
+            # Отрисовка игровых объектов
+            self.player.render()
+            self.mouse.render()
+            
+            if self.boss_level_active:
+                self.mouse_king.render()
+                
+            # Отрисовка HUD
+            self.render_hud()
+            
+            # Эффект вспышки
+            if self.flash_alpha > 0:
+                self.flash_surface.fill((*self.flash_color, self.flash_alpha))
+                self.screen.blit(self.flash_surface, (0, 0))
+        else:
+            # Отрисовка экрана завершения
+            self.render_game_over()
+            
+        pygame.display.flip()
+
+    def render_hud(self):
+        """Отрисовка интерфейса"""
+        # Здоровье
+        for i in range(self.player.health):
+            self.screen.blit(self.heart_image, (10 + i * (self.heart_image.get_width() + 1), 10))
+            
+        # Счетчик мышей
+        mouse_text = f"Мыши: {self.mouse.caught_count}/{self.mouse.max_count}"
+        text = self.font.render(mouse_text, True, self.RED)
+        self.screen.blit(text, (650, 10))
+        
+        # Счетчик королей мышей (если не на босс-уровне)
+        if not self.boss_level_active:
+            king_text = f"Короли: {self.mouse_king.caught_count}/3"
+            text = self.font.render(king_text, True, self.RED)
+            self.screen.blit(text, (650, 50))
+            
+        # Предыдущий результат
+        if self.previous_result:
+            text = self.font.render("Прошлый результат:", True, self.RED)
+            self.screen.blit(text, (50, 50))
+            
+            text = self.font.render(self.previous_result, True, self.RED)
+            self.screen.blit(text, (50, 100))
+
+    def render_game_over(self):
+        """Отрисовка экрана завершения игры"""
+        if self.victory and self.boss_level_active:
+            # Радужный текст для полной победы
+            color = self.rainbow_colors[self.current_color_index]
+            text = self.font.render(self.end_text, True, color)
+        else:
+            # Красный текст для проигрыша или частичной победы
+            text = self.font.render(self.end_text, True, self.RED)
+            
+        text_rect = text.get_rect(center=(self.screen_width//2, self.screen_height//2 - 30))
+        self.screen.blit(text, text_rect)
+        
+        if self.end_subtext:
+            subtext = self.font.render(self.end_subtext, True, self.RED)
+            subtext_rect = subtext.get_rect(center=(self.screen_width//2, self.screen_height//2 + 30))
+            self.screen.blit(subtext, subtext_rect)
+
+    def run(self):
+        """Основной игровой цикл"""
+        while self.running:
+            self.handle_events()
+            self.update()
+            self.render()
+            self.clock.tick(60)
+            
+        pygame.quit()
+        sys.exit()
+
+
+class Player:
+    def __init__(self, game):
+        self.game = game
+        self.reset()
+        
+    def reset(self):
+        """Сброс состояния игрока"""
+        self.x = (self.game.screen_width - 100) // 2
+        self.y = self.game.screen_height - 50
+        self.speed = 20
+        self.health = 3
+        self.current_image = self.game.cat_image
+        
+    def update(self):
+        """Обновление позиции игрока"""
+        keys = pygame.key.get_pressed()
+        
+        if keys[pygame.K_LEFT]:
+            self.x -= self.speed
+            self.current_image = self.game.cat_image
+            if self.x < 0:
+                self.x = 0
+                
+        if keys[pygame.K_RIGHT]:
+            self.x += self.speed
+            self.current_image = self.game.cat_image_right
+            if self.x > self.game.screen_width - self.current_image.get_width():
+                self.x = self.game.screen_width - self.current_image.get_width()
+
+    def render(self):
+        """Отрисовка игрока"""
+        self.game.screen.blit(
+            self.current_image, 
+            (self.x + self.game.shake_offset, self.y)
+        )
+
+
+class Mouse:
+    def __init__(self, game):
+        self.game = game
+        self.reset()
+        
+    def reset(self):
+        """Сброс состояния мыши"""
+        self.image = self.game.mouse_image
+        self.speed = 3
+        self.max_count = 15
+        self.caught_count = 0
+        self.reset_position()
+        
+    def reset_position(self):
+        """Сброс позиции мыши"""
+        self.x = random.randint(50, self.game.screen_width - 50)
+        self.y = -50
+        
+    def update(self):
+        """Обновление позиции мыши"""
+        self.y += self.speed
+        
+        # Проверка выхода за экран
+        if self.y >= self.game.screen_height:
+            self.handle_miss()
+            return
+            
+        # Проверка столкновения с игроком
+        if (self.x <= self.game.player.x + self.game.player.current_image.get_width() and
+            self.x >= self.game.player.x - self.image.get_width() and
+            self.y >= self.game.player.y - self.image.get_height() and
+            self.y <= self.game.player.y + self.game.player.current_image.get_height()):
+            
+            self.handle_catch()
+            
+        # Динамическая сложность
+        self.adjust_difficulty()
+        
+    def adjust_difficulty(self):
+        """Регулировка сложности в зависимости от прогресса"""
+        if not self.game.boss_level_active and self.game.player.health > 0:
+            if self.caught_count in [2, 5, 8, 11]:
+                self.speed = max(1, self.speed - 2)
+            elif self.caught_count in [3, 6, 9, 12]:
+                self.speed += 2
+
+    def handle_miss(self):
+        """Обработка пропуска мыши"""
+        self.reset_position()
+        self.game.player.health -= 1
+        self.caught_count = max(0, self.caught_count - 1)
+        self.game.shake_timer = 10
+        
+        # Воспроизведение звука пропуска
+        if self.game.miss_sound:
+            self.game.miss_sound.play()
+            
+    def handle_catch(self):
+        """Обработка поимки мыши"""
+        self.reset_position()
+        self.caught_count += 1
+        self.game.flash_alpha = 180
+        
+        # Воспроизведение звука поимки
+        if self.game.catch_sound:
+            self.game.catch_sound.play()
+            
+    def render(self):
+        """Отрисовка мыши"""
+        self.game.screen.blit(self.image, (self.x, self.y))
+
+
+class MouseKing(Mouse):
+    def __init__(self, game):
+        super().__init__(game)
+        self.reset()
+        
+    def reset(self):
+        """Сброс состояния короля мышей"""
+        self.image = self.game.mouse_king_image
+        self.speed = 0
+        self.max_count = 3
+        self.caught_count = 0
+        self.active = False
+        self.reset_position()
+        
+    def reset_position(self):
+        """Сброс позиции короля мышей"""
+        self.x = random.randint(50, self.game.screen_width - 50)
+        self.y = -75
+        
+    def update(self):
+        """Обновление короля мышей"""
+        if not self.active:
+            # Активация короля при определенных условиях
+            if (not self.game.boss_level_active and 
+                self.game.mouse.caught_count in [3, 6, 9, 12] and 
+                self.caught_count < 3):
+                
+                self.activate()
+            return
+            
+        self.y += self.speed
+        
+        # Проверка выхода за экран
+        if self.y >= self.game.screen_height:
+            self.deactivate()
+            self.game.player.health -= 1
+            return
+            
+        # Проверка столкновения с игроком
+        if (self.x <= self.game.player.x + self.game.player.current_image.get_width() and
+            self.x >= self.game.player.x - self.image.get_width() and
+            self.y >= self.game.player.y - self.image.get_height() and
+            self.y <= self.game.player.y + self.game.player.current_image.get_height()):
+            
+            self.handle_catch()
+            
+    def activate(self):
+        """Активация короля мышей"""
+        self.reset_position()
+        self.speed = random.randint(self.game.mouse.speed, self.game.mouse.speed * 2)
+        self.active = True
+        
+    def deactivate(self):
+        """Деактивация короля мышей"""
+        self.reset_position()
+        self.active = False
+        
+    def handle_catch(self):
+        """Обработка поимки короля мышей"""
+        self.deactivate()
+        self.caught_count += 1
+        
+        # Специальный звук для короля?
+        if self.game.catch_sound:
+            self.game.catch_sound.play()
+
+
+# Запуск игры
+if __name__ == "__main__":
+    game = Game()
+    game.run()import pygame
+import sys
+import random
+from typing import List, Tuple, Optional
+
+class Game:
+    def __init__(self):
+        pygame.init()
+        self.setup_screen()
+        self.load_assets()
+        self.setup_game_state()
+        
+    def setup_screen(self):
+        """Инициализация экрана игры"""
+        self.screen_width = 800
+        self.screen_height = 600
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+        self.font = pygame.font.Font(None, 36)
+        self.clock = pygame.time.Clock()
+        
+    def load_assets(self):
+        """Загрузка всех ресурсов (изображения, звуки)"""
+        # Цвета
+        self.WHITE = (255, 255, 255)
+        self.RED = (255, 0, 0)
+        
+        # Изображения
+        self.load_images()
+        self.load_sounds()
+        
+    def load_images(self):
+        """Загрузка и масштабирование изображений"""
+        try:
+            # Основные изображения
+            self.cat_image = pygame.transform.scale(pygame.image.load("кот.png"), (100, 50))
+            self.cat_image_right = pygame.transform.flip(self.cat_image, True, False)
+            self.current_cat_image = self.cat_image
+            
+            self.mouse_image = pygame.transform.scale(pygame.image.load("мышь.jpg"), (50, 50))
+            self.heart_image = pygame.transform.scale(pygame.image.load("red-heart.jpg"), (50, 25))
+            self.mouse_king_image = pygame.transform.scale(pygame.image.load("mouse king.jpg"), (75, 75))
+            
+            # Вспышка при поимке мыши
+            self.flash_surface = pygame.Surface((self.screen_width, self.screen_height), pygame.SRCALPHA)
+            self.flash_color = (255, 128, 0)
+        except FileNotFoundError as e:
+            print(f"Ошибка загрузки изображений: {e}")
+            sys.exit()
+            
+    def load_sounds(self):
+        """Загрузка звуковых эффектов"""
+        try:
+            self.catch_sound = pygame.mixer.Sound("t4pzv4n4k_ch3p3-ch3p3-ch1p1-ch1p1-d5b3-d5b3-d1b1-d1b1.mp3")
+            self.miss_sound = pygame.mixer.Sound("cat_meow_extremely_angry_long_04.mp3")
+            self.boss_music = pygame.mixer.Sound("Mortal Kombat - Combat Theme (Scorpion).mp3")
+        except FileNotFoundError as e:
+            print(f"Ошибка загрузки звуков: {e}")
+            # Продолжаем без звуков
+
+    def setup_game_state(self):
+        """Инициализация состояния игры"""
+        # Игровые объекты
+        self.player = Player(self)
+        self.mouse = Mouse(self)
+        self.mouse_king = MouseKing(self)
+        
+        # Состояние игры
+        self.running = True
+        self.game_over = False
+        self.victory = False
+        self.boss_level_unlocked = False
+        self.boss_level_active = False
+        
+        # Загрузка предыдущего результата
+        self.load_previous_result()
+        
+        # Эффекты
+        self.shake_offset = 0
+        self.shake_timer = 0
+        self.flash_alpha = 0
+        
+        # Текст
+        self.setup_text()
+        
+    def setup_text(self):
+        """Настройка текстовых элементов"""
+        self.rainbow_colors = [
+            (255, 0, 0), (255, 127, 0), (255, 255, 0),
+            (0, 255, 0), (0, 0, 255), (75, 0, 130),
+            (148, 0, 211), (0, 0, 0)
+        ]
+        self.current_color_index = 0
+        self.color_change_timer = 0
+        
+        self.end_text = ""
+        self.end_subtext = ""
+        
+    def load_previous_result(self):
+        """Загрузка предыдущего результата из файла"""
+        try:
+            with open("Результаты.txt", "r") as file:
+                self.previous_result = file.readline()
+        except FileNotFoundError:
+            self.previous_result = ""
+
+    def save_result(self, progress: str):
+        """Сохранение текущего результата"""
+        with open("Результаты.txt", "w") as file:
+            file.write(f"Прогресс: {progress}")
+
+    def handle_events(self):
+        """Обработка событий игры"""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+
+    def update(self):
+        """Обновление состояния игры"""
+        if self.game_over:
+            return
+            
+        self.player.update()
+        self.mouse.update()
+        
+        if self.boss_level_active:
+            self.mouse_king.update()
+            
+        # Проверка условий победы/проигрыша
+        self.check_game_conditions()
+        
+        # Обновление эффектов
+        self.update_effects()
+        
+    def update_effects(self):
+        """Обновление визуальных эффектов"""
+        # Эффект тряски
+        if self.shake_timer > 0:
+            self.shake_offset = random.randint(-15, 15)
+            self.shake_timer -= 1
+        else:
+            self.shake_offset = 0
+            
+        # Эффект вспышки
+        if self.flash_alpha > 0:
+            self.flash_alpha -= 5
+            if self.flash_alpha < 0:
+                self.flash_alpha = 0
+                
+        # Анимация радужного текста
+        self.color_change_timer += 1
+        if self.color_change_timer >= 10:
+            self.current_color_index = (self.current_color_index + 1) % len(self.rainbow_colors)
+            self.color_change_timer = 0
+
+    def check_game_conditions(self):
+        """Проверка условий завершения игры"""
+        # Проверка здоровья
+        if self.player.health <= 0:
+            self.game_over = True
+            self.victory = False
+            self.end_text = "Вы проиграли"
+            self.stop_all_sounds()
+            
+            # Сохранение результата
+            progress = "50%" if self.boss_level_unlocked else "0%"
+            self.save_result(progress)
+            return
+            
+        # Проверка победы на обычном уровне
+        if (not self.boss_level_active and 
+            self.mouse.caught_count >= self.mouse.max_count and 
+            self.mouse_king.caught_count >= 3):
+            
+            self.start_boss_level()
+            return
+            
+        # Проверка победы на босс-уровне
+        if (self.boss_level_active and 
+            self.mouse.caught_count >= self.mouse.max_count):
+            
+            self.game_over = True
+            self.victory = True
+            self.end_text = "Вы выиграли"
+            self.end_subtext = ""
+            self.stop_all_sounds()
+            self.save_result("100%")
+
+    def start_boss_level(self):
+        """Активация босс-уровня"""
+        self.boss_level_active = True
+        self.boss_level_unlocked = True
+        
+        # Настройка босс-уровня
+        self.mouse.image = self.mouse_king_image
+        self.mouse.speed = 15
+        self.player.health = 5
+        self.mouse.max_count = 30
+        self.mouse.caught_count = 0
+        
+        # Воспроизведение музыки босса
+        self.boss_music.play()
+        self.catch_sound.set_volume(0.0)
+        self.miss_sound.set_volume(0.0)
+
+    def stop_all_sounds(self):
+        """Остановка всех звуков"""
+        self.catch_sound.stop()
+        self.miss_sound.stop()
+        self.boss_music.stop()
+
+    def render(self):
+        """Отрисовка игры"""
+        self.screen.fill(self.WHITE)
+        
+        if not self.game_over:
+            # Отрисовка игровых объектов
+            self.player.render()
+            self.mouse.render()
+            
+            if self.boss_level_active:
+                self.mouse_king.render()
+                
+            # Отрисовка HUD
+            self.render_hud()
+            
+            # Эффект вспышки
+            if self.flash_alpha > 0:
+                self.flash_surface.fill((*self.flash_color, self.flash_alpha))
+                self.screen.blit(self.flash_surface, (0, 0))
+        else:
+            # Отрисовка экрана завершения
+            self.render_game_over()
+            
+        pygame.display.flip()
+
+    def render_hud(self):
+        """Отрисовка интерфейса"""
+        # Здоровье
+        for i in range(self.player.health):
+            self.screen.blit(self.heart_image, (10 + i * (self.heart_image.get_width() + 1), 10))
+            
+        # Счетчик мышей
+        mouse_text = f"Мыши: {self.mouse.caught_count}/{self.mouse.max_count}"
+        text = self.font.render(mouse_text, True, self.RED)
+        self.screen.blit(text, (650, 10))
+        
+        # Счетчик королей мышей (если не на босс-уровне)
+        if not self.boss_level_active:
+            king_text = f"Короли: {self.mouse_king.caught_count}/3"
+            text = self.font.render(king_text, True, self.RED)
+            self.screen.blit(text, (650, 50))
+            
+        # Предыдущий результат
+        if self.previous_result:
+            text = self.font.render("Прошлый результат:", True, self.RED)
+            self.screen.blit(text, (50, 50))
+            
+            text = self.font.render(self.previous_result, True, self.RED)
+            self.screen.blit(text, (50, 100))
+
+    def render_game_over(self):
+        """Отрисовка экрана завершения игры"""
+        if self.victory and self.boss_level_active:
+            # Радужный текст для полной победы
+            color = self.rainbow_colors[self.current_color_index]
+            text = self.font.render(self.end_text, True, color)
+        else:
+            # Красный текст для проигрыша или частичной победы
+            text = self.font.render(self.end_text, True, self.RED)
+            
+        text_rect = text.get_rect(center=(self.screen_width//2, self.screen_height//2 - 30))
+        self.screen.blit(text, text_rect)
+        
+        if self.end_subtext:
+            subtext = self.font.render(self.end_subtext, True, self.RED)
+            subtext_rect = subtext.get_rect(center=(self.screen_width//2, self.screen_height//2 + 30))
+            self.screen.blit(subtext, subtext_rect)
+
+    def run(self):
+        """Основной игровой цикл"""
+        while self.running:
+            self.handle_events()
+            self.update()
+            self.render()
+            self.clock.tick(60)
+            
+        pygame.quit()
+        sys.exit()
+
+
+class Player:
+    def __init__(self, game):
+        self.game = game
+        self.reset()
+        
+    def reset(self):
+        """Сброс состояния игрока"""
+        self.x = (self.game.screen_width - 100) // 2
+        self.y = self.game.screen_height - 50
+        self.speed = 20
+        self.health = 3
+        self.current_image = self.game.cat_image
+        
+    def update(self):
+        """Обновление позиции игрока"""
+        keys = pygame.key.get_pressed()
+        
+        if keys[pygame.K_LEFT]:
+            self.x -= self.speed
+            self.current_image = self.game.cat_image
+            if self.x < 0:
+                self.x = 0
+                
+        if keys[pygame.K_RIGHT]:
+            self.x += self.speed
+            self.current_image = self.game.cat_image_right
+            if self.x > self.game.screen_width - self.current_image.get_width():
+                self.x = self.game.screen_width - self.current_image.get_width()
+
+    def render(self):
+        """Отрисовка игрока"""
+        self.game.screen.blit(
+            self.current_image, 
+            (self.x + self.game.shake_offset, self.y)
+        )
+
+
+class Mouse:
+    def __init__(self, game):
+        self.game = game
+        self.reset()
+        
+    def reset(self):
+        """Сброс состояния мыши"""
+        self.image = self.game.mouse_image
+        self.speed = 3
+        self.max_count = 15
+        self.caught_count = 0
+        self.reset_position()
+        
+    def reset_position(self):
+        """Сброс позиции мыши"""
+        self.x = random.randint(50, self.game.screen_width - 50)
+        self.y = -50
+        
+    def update(self):
+        """Обновление позиции мыши"""
+        self.y += self.speed
+        
+        # Проверка выхода за экран
+        if self.y >= self.game.screen_height:
+            self.handle_miss()
+            return
+            
+        # Проверка столкновения с игроком
+        if (self.x <= self.game.player.x + self.game.player.current_image.get_width() and
+            self.x >= self.game.player.x - self.image.get_width() and
+            self.y >= self.game.player.y - self.image.get_height() and
+            self.y <= self.game.player.y + self.game.player.current_image.get_height()):
+            
+            self.handle_catch()
+            
+        # Динамическая сложность
+        self.adjust_difficulty()
+        
+    def adjust_difficulty(self):
+        """Регулировка сложности в зависимости от прогресса"""
+        if not self.game.boss_level_active and self.game.player.health > 0:
+            if self.caught_count in [2, 5, 8, 11]:
+                self.speed = max(1, self.speed - 2)
+            elif self.caught_count in [3, 6, 9, 12]:
+                self.speed += 2
+
+    def handle_miss(self):
+        """Обработка пропуска мыши"""
+        self.reset_position()
+        self.game.player.health -= 1
+        self.caught_count = max(0, self.caught_count - 1)
+        self.game.shake_timer = 10
+        
+        # Воспроизведение звука пропуска
+        if self.game.miss_sound:
+            self.game.miss_sound.play()
+            
+    def handle_catch(self):
+        """Обработка поимки мыши"""
+        self.reset_position()
+        self.caught_count += 1
+        self.game.flash_alpha = 180
+        
+        # Воспроизведение звука поимки
+        if self.game.catch_sound:
+            self.game.catch_sound.play()
+            
+    def render(self):
+        """Отрисовка мыши"""
+        self.game.screen.blit(self.image, (self.x, self.y))
+
+
+class MouseKing(Mouse):
+    def __init__(self, game):
+        super().__init__(game)
+        self.reset()
+        
+    def reset(self):
+        """Сброс состояния короля мышей"""
+        self.image = self.game.mouse_king_image
+        self.speed = 0
+        self.max_count = 3
+        self.caught_count = 0
+        self.active = False
+        self.reset_position()
+        
+    def reset_position(self):
+        """Сброс позиции короля мышей"""
+        self.x = random.randint(50, self.game.screen_width - 50)
+        self.y = -75
+        
+    def update(self):
+        """Обновление короля мышей"""
+        if not self.active:
+            # Активация короля при определенных условиях
+            if (not self.game.boss_level_active and 
+                self.game.mouse.caught_count in [3, 6, 9, 12] and 
+                self.caught_count < 3):
+                
+                self.activate()
+            return
+            
+        self.y += self.speed
+        
+        # Проверка выхода за экран
+        if self.y >= self.game.screen_height:
+            self.deactivate()
+            self.game.player.health -= 1
+            return
+            
+        # Проверка столкновения с игроком
+        if (self.x <= self.game.player.x + self.game.player.current_image.get_width() and
+            self.x >= self.game.player.x - self.image.get_width() and
+            self.y >= self.game.player.y - self.image.get_height() and
+            self.y <= self.game.player.y + self.game.player.current_image.get_height()):
+            
+            self.handle_catch()
+            
+    def activate(self):
+        """Активация короля мышей"""
+        self.reset_position()
+        self.speed = random.randint(self.game.mouse.speed, self.game.mouse.speed * 2)
+        self.active = True
+        
+    def deactivate(self):
+        """Деактивация короля мышей"""
+        self.reset_position()
+        self.active = False
+        
+    def handle_catch(self):
+        """Обработка поимки короля мышей"""
+        self.deactivate()
+        self.caught_count += 1
+        
+        # Специальный звук для короля?
+        if self.game.catch_sound:
+            self.game.catch_sound.play()
+
+
+# Запуск игры
+if __name__ == "__main__":
+    game = Game()
+    game.run()
