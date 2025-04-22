@@ -64,6 +64,7 @@ end.
 
 
 
+
 #Подключение библиотек
 import pygame
 import sys
@@ -84,11 +85,11 @@ RED = (255, 0, 0)
 #Картинки и музыка:
 image = pygame.image.load(r"кот.png")
 image = pygame.transform.scale(image, (100, 50))
-image2 = pygame.image.load(r"мышь.jpg")
+image2 = pygame.image.load(r"мышь.png")
 image2 = pygame.transform.scale(image2, (50, 50))
 image3 = pygame.image.load(r"red-heart.jpg")
 image3 = pygame.transform.scale(image3, (50, 25))
-image4 = pygame.image.load(r"mouse king.jpg")
+image4 = pygame.image.load(r"mouse king.png")
 image4 = pygame.transform.scale(image4, (75, 75))
 catch_sound2 = pygame.mixer.Sound(r"cat_meow_extremely_angry_long_04.mp3")
 catch_sound = pygame.mixer.Sound(r"t4pzv4n4k_ch3p3-ch3p3-ch1p1-ch1p1-d5b3-d5b3-d1b1-d1b1.mp3")
@@ -122,7 +123,7 @@ word3 = "/" + str(health)
 word4 = "Прошлый результат:"
 color_change_speed = 2   #Скорость изменения цвета текста
 current_color_index = 0 #Переменная для цвета
-rainbow_colors = [(255, 0, 0),(255, 127, 0),(255, 255, 0),(0, 255, 0), (0, 0, 255),(75, 0, 130),(148, 0, 211), (0, 0, 0)]   #Возможные цвета текста
+rainbow_colors = [(255, 0, 0),(255, 127, 0),(255, 255, 0),(0, 255, 0), (0, 0, 255),(75, 0, 130),(148, 0, 211), (0, 255, 255)]   #Возможные цвета текста
 CountMouses = 0   #Количество пойманных обычных мышей
 mouseSpawnCoord = 0 #Координата появления обычной мыши
 EndText = ""   #Текст по окончании игры
@@ -274,7 +275,7 @@ while running:
         progressFlag = True
         catSpeed=20 #Скорость кота
         health=5 #Количество жизней
-        mouseSpeed=15  #Скорость короля
+        mouseSpeed=12.5  #Скорость короля
         isAbleToDop=1  #Включение доп уровня
         images_changed = True #Смена картин
         if CountMouses == maxCountMouses and images_changed and NextLevelFlag: #Условие на новый экран
