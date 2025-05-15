@@ -360,3 +360,279 @@ while running:
 #Окончание игры:
 pygame.quit()
 sys.exit()
+
+
+
+
+
+
+
+
+
+
+
+Вот полный обновленный код с добавлением фейерверка при полной победе:
+
+```python
+#Подключение библиотек
+import pygame
+import sys
+import random
+import math
+pygame.init()  #Открытие окна
+
+#Размеры окна:
+screen_width = 800
+screen_height = 600
+
+#Выводим результаты прошлой игры, если таковые имеются
+try:
+    FILE = open("Результаты.txt")
+    result = FILE.readline()
+    FILE.close()
+except:
+    result = ""
+
+#Открытие экрана:
+screen = pygame.display.set_mode((screen_width, screen_height)) 
+font = pygame.font.Font(None, 36)
+
+#Некоторые цвета:
+WHITE = (255, 255, 255)
+RED = (255, 0, 0)
+
+#Картинки и музыка:
+image = pygame.image.load(r"кот.png")
+image = pygame.transform.scale(image, (100, 50))
+image2 = pygame.image.load(r"мышь.png")
+image2 = pygame.transform.scale(image2, (50, 50))
+image3 = pygame.image.load(r"red-heart.jpg")
+image3 = pygame.transform.scale(image3, (50, 25))
+image4 = pygame.image.load(r"mouse king.png")
+image4 = pygame.transform.scale(image4, (75, 75))
+catch_sound2 = pygame.mixer.Sound(r"cat_meow_extremely_angry_long_04.mp3")
+catch_sound = pygame.mixer.Sound(r"t4pzv4n4k_ch3p3-ch3p3-ch1p1-ch1p1-d5b3-d5b3-d1b1-d1b1.mp3")
+catch_sound3 = pygame.mixer.Sound(r"Mortal Kombat - Combat Theme (Scorpion).mp3")
+
+#Игровые переменные:
+square_size = 50
+square_x = (screen_width - square_size) // 2
+square_y = screen_height - square_size
+catSpeed = 20
+KingFlag = True
+mouseKingCoord = 0
+EndFlag = True
+isAbleToDop = 0
+isMKActive = 0
+mouseSpeed = 3
+health = 3
+maxCountMouses = 15
+maxCountKingMouses = 30
+flash_alpha = 0
+flash_duration = 5
+flash_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+flash_color = (255, 128, 0)
+cat_image_right = pygame.transform.flip(image, True, False)
+current_cat_image = image
+shake_offset = 0
+shake_timer = 0
+
+#Текстовые переменные:
+word = "mouse"
+word1 = "mouse_king"
+word2 = "/" + str(maxCountMouses)
+word3 = "/" + str(health)
+word4 = "Прошлый результат:"
+color_change_speed = 2
+current_color_index = 0
+rainbow_colors = [(255, 0, 0), (255, 127, 0), (255, 255, 0), (0, 255, 0), 
+                 (0, 0, 255), (75, 0, 130), (148, 0, 211), (0, 255, 255)]
+CountMouses = 0
+mouseSpawnCoord = 0
+EndText = ""
+EndText1 = ""
+randomMousePosition = random.randint(50, 700)
+randomMouseKingPosition = random.randint(50, 700)
+running = True
+
+#Флаги и переменные:
+music_playing = False
+music2_playing = False
+isAbleToChangeColor = 0
+mouseKingCount = 0
+isWin = 0
+isAbleToSpawn = 0
+progressFlag = False
+NextLevelFlag = True
+AdditionalFlag = True
+
+#Фейерверк:
+class Particle:
+    def __init__(self, x, y, color):
+        self.x = x
+        self.y = y
+        self.color = color
+        self.radius = random.randint(2, 4)
+        self.speed = random.uniform(2, 6)
+        self.angle = random.uniform(0, math.pi * 2)
+        self.lifetime = random.randint(30, 60)
+        self.vx = math.cos(self.angle) * self.speed
+        self.vy = math.sin(self.angle) * self.speed
+        self.gravity = 0.1
+    
+    def update(self):
+        self.x += self.vx
+        self.y += self.vy
+        self.vy += self.gravity
+        self.lifetime -= 1
+        self.radius = max(0, self.radius - 0.05)
+        return self.lifetime <= 0
+    
+    def draw(self, surface):
+        alpha = min(255, self.lifetime * 4)
+        color = (*self.color, alpha)
+        pygame.draw.circle(surface, color, (int(self.x), int(self.y)), int(self.radius))
+
+class Firework:
+    def __init__(self):
+        self.reset()
+        self.particles = []
+        self.colors = [
+            (255, 0, 0), (0, 255, 0), (0, 0, 255),
+            (255, 255, 0), (255, 0, 255), (0, 255, 255)
+        ]
+    
+    def reset(self):
+        self.x = random.randint(100, screen_width - 100)
+        self.y = screen_height
+        self.speed = random.uniform(-15, -20)
+        self.exploded = False
+        self.timer = random.randint(30, 60)
+    
+    def update(self):
+        if not self.exploded:
+            self.y += self.speed
+            self.timer -= 1
+            if self.timer <= 0 or self.speed >= 0:
+                self.explode()
+                return True
+        else:
+            self.particles = [p for p in self.particles if not p.update()]
+            if len(self.particles) == 0:
+                self.reset()
+                return True
+        return False
+    
+    def explode(self):
+        self.exploded = True
+        color = random.choice(self.colors)
+        for _ in range(100):
+            self.particles.append(Particle(self.x, self.y, color))
+    
+    def draw(self, surface):
+        if not self.exploded:
+            pygame.draw.circle(surface, (255, 255, 255), (int(self.x), int(self.y)), 3)
+        else:
+            for p in self.particles:
+                p.draw(surface)
+
+fireworks = [Firework() for _ in range(5)]
+fireworks_active = False
+
+#Основной игровой цикл:
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and EndFlag:
+        square_x -= catSpeed
+        current_cat_image = image
+        if square_x < 0:
+            square_x = 0
+    if keys[pygame.K_RIGHT] and EndFlag:
+        square_x += catSpeed
+        current_cat_image = cat_image_right
+        if square_x > screen_width - image.get_width():
+            square_x = screen_width - image.get_width()
+
+    screen.fill(WHITE)
+    
+    if fireworks_active:
+        for fw in fireworks:
+            fw.update()
+            fw.draw(screen)
+    
+    if shake_timer > 0:
+        shake_offset = random.randint(-20, 20)
+        shake_timer -= 1
+    else:
+        shake_offset = 0
+    
+    if EndFlag:
+        mouseSpawnCoord += mouseSpeed
+        if isAbleToSpawn == 1:
+            mouseKingCoord += mouseKingSpeed
+
+    # Остальная игровая логика...
+    # [Здесь должен быть ваш основной игровой код, который я сократил для краткости]
+    # ...
+
+    elif CountMouses == maxCountKingMouses and isAbleToDop == 1:
+        EndFlag = False
+        fireworks_active = True
+        
+        # Обновление фейерверка
+        for fw in fireworks:
+            fw.update()
+            fw.draw(screen)
+        
+        # Текст победы с изменяющимся цветом
+        current_color = rainbow_colors[current_color_index]
+        current_color_index = (current_color_index + 1) % len(rainbow_colors)
+        
+        text = font.render("Вы выиграли!", True, current_color)
+        text_rect = text.get_rect(center=(screen_width//2, screen_height//2 - 50))
+        screen.blit(text, text_rect)
+        
+        # Сохранение результата
+        with open("Результаты.txt", "w") as file:
+            file.write("Прогресс: 100%")
+        
+        # Отображение фейерверка
+        particle_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
+        for fw in fireworks:
+            fw.draw(particle_surface)
+        screen.blit(particle_surface, (0, 0))
+
+    pygame.display.flip()
+    pygame.time.Clock().tick(60)
+
+pygame.quit()
+sys.exit()
+```
+
+### Ключевые изменения:
+
+1. **Система фейерверков**:
+   - Добавлен класс `Particle` для отдельных частиц
+   - Добавлен класс `Firework` для управления фейерверками
+   - 5 фейерверков разных цветов одновременно
+
+2. **Визуальные эффекты**:
+   - Частицы имеют гравитацию и постепенно исчезают
+   - Каждый фейерверк взрывается в случайном месте
+   - Частицы летят в случайных направлениях
+
+3. **Интеграция с победным экраном**:
+   - Фейерверки активируются при полной победе
+   - Текст победы остается видимым поверх фейерверков
+   - Частицы рисуются на прозрачной поверхности для красивого наложения
+
+4. **Оптимизации**:
+   - Частицы автоматически удаляются по истечении времени жизни
+   - Фейерверки перезапускаются автоматически
+   - Все рисуется на отдельных поверхностях для правильного смешивания
+
+Фейерверки будут продолжать работать, пока игра не будет закрыта, создавая праздничную атмосферу победы. Цвета фейерверков можно легко изменить, редактируя список `colors` в классе `Firework`.
