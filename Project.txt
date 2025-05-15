@@ -42,321 +42,6 @@ maxCountMouses = 15 #Максимальное количество мышей
 maxCountKingMouses = 30 #Максимальное количество королей на доп уровне
 flash_alpha = 0 #Прозрачность вспышки
 flash_duration = 5 #Скорость ее исчезновения
-flash_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA) #Поверхность для вспышки
-flash_color = (255, 128, 0) #Цвет вспышки
-cat_image_right = pygame.transform.flip(image, True, False)
-current_cat_image = image
-shake_offset = 0 #Смещение экрана
-shake_timer = 0 #Таймер тряски
-#Некоторый текст на экране:
-word = "mouse"
-word1 = "mouse_king"
-word2 = "/" + str(maxCountMouses)
-word3 = "/" + str(health)
-word4 = "Прошлый результат:"
-color_change_speed = 2   #Скорость изменения цвета текста
-current_color_index = 0 #Переменная для цвета
-rainbow_colors = [(255, 0, 0),(255, 127, 0),(255, 255, 0),(0, 255, 0), (0, 0, 255),(75, 0, 130),(148, 0, 211), (0, 255, 255)]   #Возможные цвета текста
-CountMouses = 0   #Количество пойманных обычных мышей
-mouseSpawnCoord = 0 #Координата появления обычной мыши
-EndText = ""   #Текст по окончании игры
-EndText1 = ""   #Текст по окончании игры
-randomMousePosition = random.randint(50, 700) #Переменная для появления обычной мыши
-randomMouseKingPosition = random.randint(50, 700)  #Переменная для появления мышиного короля
-running = True #Переменная для экрана
-#Флаги на музыку:
-music_playing = False
-music2_playing = False
-isAbleToChangeColor=0 #Переменная, отвечающая за изменение цвета текста
-mouseKingCount=0  #Счетсчик мышиных королей
-isWin=0 #Проверяет, выиграли ли мы
-isAbleToSpawn=0  #Проверяет условие для появления короля
-progressFlag = False #Флаг на пройденность игры
-NextLevelFlag = True #Флаг для корректной работы счетсчика на 2-ом уровне
-AdditionalFlag = True
-#Запуск экрана:
-while running:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-    keys = pygame.key.get_pressed()#Клавиши, движение кота, не выход за экран
-    if keys[pygame.K_LEFT]:
-        square_x -= catSpeed
-        current_cat_image = image
-        if square_x < 0:
-            square_x = 0
-    if keys[pygame.K_RIGHT]:
-        square_x += catSpeed
-        current_cat_image = cat_image_right
-        if square_x > screen_width - image.get_width():
-            square_x = screen_width - image.get_width()
-
-    screen.fill(WHITE) #Цвет фона
-    if shake_timer > 0:
-        shake_offset = random.randint(-20, 20)
-        shake_timer -= 1
-    else:
-        shake_offset = 0
-    mouseSpawnCoord += mouseSpeed #Движение мыши
-    if isAbleToSpawn == 1:
-        mouseKingCoord += mouseKingSpeed #Движение короля
-
-    if mouseSpawnCoord >= screen_height:  #Если мы не поймали мышь:
-        mouseSpawnCoord = 0
-        health -= 1
-        CountMouses -= 1
-        shake_timer = 10
-
-        if music_playing: #Условия для корректной работы музыки
-            catch_sound2.play()
-
-        if music_playing:
-            catch_sound.stop()
-            music_playing = False
-
-        if not music2_playing:
-            catch_sound2.play()
-            music2_playing = True
-
-        if CountMouses in [2, 5, 8, 11] and AdditionalFlag: #Изменение скорости мыши, в зависимости от ее числа
-            mouseSpeed -= 2
-            KingFlag = False
-
-        if CountMouses == -1:  #Условие на неотрицательность числа мышей
-            CountMouses = 0
-    elif mouseKingCoord>= screen_height: #Если мы не ловим короля
-        mouseKingCoord=0
-        isAbleToSpawn=0
-        health -= 1
-        isMKActive=0
-
-    elif randomMousePosition <= square_x + square_size and randomMousePosition >= square_x - square_size and mouseSpawnCoord >= square_y - square_size and mouseSpawnCoord <= square_y + square_size: #Условие на падение мыши
-        mouseSpawnCoord = 0
-        randomMousePosition = random.randint(50,700)
-        CountMouses += 1
-        flash_alpha = 180 #Запускаем вспышку
-        if music2_playing: #Условие на смену музыки
-            catch_sound2.stop()
-            music2_playing = False
-        if not music_playing:
-            catch_sound.play()
-            music_playing = True
-        if CountMouses in [3, 6, 9, 12] and AdditionalFlag:  #Изменение скорости мыши, в зависимости от ее числа
-            mouseSpeed += 2
-            if mouseKingCount!=3 and KingFlag == True: #Если мы еще не словили 3-х королей
-                isAbleToSpawn=1
-            KingFlag = True
-    if CountMouses == 1:
-            result = ""
-            word4 = ""
-    if isAbleToSpawn==1 and isAbleToDop==0:  #Если мы еще не словили 3-х королей
-        mouseKingSpeed=random.randint(mouseSpeed,2*mouseSpeed)
-        isMKActive=1
-    if randomMouseKingPosition <= square_x + square_size and randomMouseKingPosition >= square_x - square_size and mouseKingCoord >= square_y - square_size and mouseKingCoord <= square_y + square_size and isAbleToDop==0:  #Условие на падение короля
-        if mouseKingCount!=3: #Условие на счетсчик королей
-            mouseKingCount+=1
-        mouseKingCoord=0
-        isMKActive=0
-        randomMouseKingPosition = random.randint(50,700)
-        isAbleToSpawn=0
-    for i in range(health): #Условие на здоровье
-        screen.blit(image3, (10 + i * (image3.get_width() + 1), 10))
-    #Текст на экране:
-    text = font.render(f"{CountMouses}", True, RED)
-    text_rect = text.get_rect(center=(750, 10))
-    screen.blit(text, text_rect)
-    text = font.render(f"{word}", True, RED)
-    text_rect = text.get_rect(center=(695, 10))
-    screen.blit(text, text_rect)
-    text = font.render(f"{word2}", True, RED)
-    text_rect = text.get_rect(center=(780, 10))
-    screen.blit(text, text_rect)
-    text = font.render(f"{result}", True, RED)
-    text_rect = text.get_rect(center=(93, 100))
-    screen.blit(text, text_rect)
-    text = font.render(f"{word4}", True, RED)
-    text_rect = text.get_rect(center=(125, 50))
-    screen.blit(text, text_rect)
-    #Вспышка при ловле мыши:
-    if flash_alpha > 0:
-        flash_surface.fill((*flash_color,flash_alpha)) #Заливка поверхности цветом с прозрачностью
-        screen.blit(flash_surface, (0, 0)) #Рисуем поверх всего
-        flash_alpha -= flash_duration #Уменьшаем прозрачность
-        if flash_alpha < 0:
-            flash_alpha = 0
-    if isAbleToDop==0: #Условие на текст
-        text = font.render(f"{mouseKingCount}", True, RED)
-        text_rect = text.get_rect(center=(762,60))
-        screen.blit(text, text_rect)
-        text = font.render(f"{word1}", True, RED)
-        text_rect = text.get_rect(center=(682, 60))
-        screen.blit(text, text_rect)
-        text = font.render(f"{word3}", True, RED)
-        text_rect = text.get_rect(center=(780, 60))
-        screen.blit(text, text_rect)
-    if isMKActive==1: #Условие на появление короля
-        screen.blit(image4,(randomMouseKingPosition,mouseKingCoord))
-    if EndFlag == True: #Условие на появление на экране кота и мыши
-        screen.blit(current_cat_image, (square_x + shake_offset, square_y)) 
-        screen.blit(image2, (randomMousePosition,mouseSpawnCoord))
-    if CountMouses == maxCountMouses and mouseKingCount==3 and NextLevelFlag: #Переход на доп уровень
-        image2 = image4 #Картинка короля
-        AdditionalFlag = False
-        catch_sound3.play()
-        catch_sound.set_volume(0.0)
-        catch_sound2.set_volume(0.0)
-        progressFlag = True
-        catSpeed=20 #Скорость кота
-        health=5 #Количество жизней
-        mouseSpeed=12.5  #Скорость короля
-        isAbleToDop=1  #Включение доп уровня
-        images_changed = True #Смена картин
-        if CountMouses == maxCountMouses and images_changed and NextLevelFlag: #Условие на новый экран
-            CountMouses = 0
-            isAbleToDop = 1
-            word2 = "/" + str(maxCountKingMouses)
-            NextLevelFlag = False
-    if isAbleToChangeColor==1: #Условие на смену цветов
-        current_color = rainbow_colors[current_color_index]
-        current_color_index = (current_color_index + 1) % len(rainbow_colors)
-        text = font.render(f"{EndText}", True, current_color) 
-        text_rect = text.get_rect(center=(400, 300)) 
-        screen.blit(text, text_rect)
-        pygame.time.delay(100)
-    else: #Если мы не открыли доп уровень
-        text = font.render(f"{EndText}", True, RED) 
-        text_rect = text.get_rect(center=(400, 300)) 
-        screen.blit(text, text_rect)
-        text = font.render(f"{EndText1}", True, RED) 
-        text_rect = text.get_rect(center=(400, 355)) 
-        screen.blit(text, text_rect)
-    if CountMouses == maxCountMouses and mouseKingCount!=3: #Условие в случае выигрыша, но не перехода на доп уровень
-        EndFlag = False
-        #Зануляем переменные, чтобы экран в конце был чистым
-        mouseSpeed = 0
-        result = ""
-        word4 = ""
-        CountMouses = ""
-        word = ""
-        word1 = ""
-        word2 = ""
-        word3 = ""
-        health = 0
-        r = (0, 0, 0)
-        #Текст на экране:
-        EndText = "Вы выиграли"
-        EndText1 = "(Не совсем)"
-        catch_sound.stop()
-        catch_sound2.stop()
-        catch_sound3.stop()
-        mouseKingCount=""
-        isWin=1
-        with open("Результаты.txt", "w") as file:
-              file.write("Прогресс: 50%")
-    elif health == 0 and isWin!=1:  #Условие в случае проигрыша
-        EndFlag = False
-        #Зануляем переменные, чтобы экран в конце был чистым
-        mouseSpeed = 0
-        result = ""
-        word4 = ""
-        CountMouses = ""
-        word = ""
-        word1 = ""
-        word2 = ""
-        word3 = ""
-        health = 0
-        r = (0, 0, 0)
-        EndText = "Вы проиграли" #Текст на экране 
-        catch_sound.stop()
-        catch_sound2.stop()
-        catch_sound3.stop()
-        mouseKingCount=""
-        if progressFlag == True:
-            with open("Результаты.txt", "w") as file:
-              file.write("Прогресс: 50%")
-        else:
-            with open("Результаты.txt", "w") as file:
-              file.write("Прогресс: 0%")
-    elif CountMouses == maxCountKingMouses and isAbleToDop == 1:  #Условие в случае выигрыша и перехода на доп уровень
-        EndFlag = False
-        #Зануляем переменные, чтобы экран в конце был чистым
-        mouseSpeed = 0
-        result = ""
-        word4 = ""
-        CountMouses = ""
-        health = 0
-        r = (0, 0, 0)
-        EndText = "Вы выиграли" #Текст на экране
-        catch_sound.stop()
-        catch_sound3.stop()
-        catch_sound2.stop()
-        isAbleToChangeColor=1
-        isWin=1
-        mouseKingCount=""
-        word = ""
-        word1 = ""
-        word2 = ""
-        word3 = ""
-        with open("Результаты.txt", "w") as file:
-              file.write("Прогресс: 100%")
-    pygame.display.flip()#Обновление содержимого окна 
-    pygame.time.Clock().tick(60) #FPS
-#Окончание игры:
-pygame.quit()
-sys.exit()
-
-
-
-
-
-
-
-
-#Подключение библиотек
-import pygame
-import sys
-import random
-pygame.init()  #Открытие окна
-#Размеры окна:
-screen_width = 800
-screen_height = 600
-#Выводим результаты прошлой игры, если таковые имеются
-FILE = open("Результаты.txt")
-result = FILE.readline()
-#Открытие экрана:
-screen = pygame.display.set_mode((screen_width, screen_height)) 
-font = pygame.font.Font(None, 36)
-#Некоторые цвета:
-WHITE = (255, 255, 255)
-RED = (255, 0, 0)
-#Картинки и музыка:
-image = pygame.image.load(r"кот.png")
-image = pygame.transform.scale(image, (100, 50))
-image2 = pygame.image.load(r"мышь.png")
-image2 = pygame.transform.scale(image2, (50, 50))
-image3 = pygame.image.load(r"red-heart.jpg")
-image3 = pygame.transform.scale(image3, (50, 25))
-image4 = pygame.image.load(r"mouse king.png")
-image4 = pygame.transform.scale(image4, (75, 75))
-catch_sound2 = pygame.mixer.Sound(r"cat_meow_extremely_angry_long_04.mp3")
-catch_sound = pygame.mixer.Sound(r"t4pzv4n4k_ch3p3-ch3p3-ch1p1-ch1p1-d5b3-d5b3-d1b1-d1b1.mp3")
-catch_sound3 = pygame.mixer.Sound(r"Mortal Kombat - Combat Theme (Scorpion).mp3")
-square_size = 50  #Некоторая переменная для заведения координат кота
-square_x = (screen_width - square_size) // 2  #Объявляем координату кота по оси Ox
-square_y = screen_height - square_size        #Oбъявляем координату кота по оси Oy
-catSpeed = 20    #Скорость кота
-KingFlag = True  #Флаг на короля
-mouseKingCoord=0    #Координата мышиного короля
-EndFlag = True      #Флаг на проверку, завершена ли игра
-isAbleToDop=0   #Переменная, проверяющая, соблюдены ли условия для запуска доп уровня
-isMKActive=0     #Переменная, отслеживающая мышиного короля
-mouseSpeed = 3    #Скорость обычной мыши
-health = 3    #Количество жизней
-maxCountMouses = 15 #Максимальное количество мышей
-maxCountKingMouses = 30 #Максимальное количество королей на доп уровне
-flash_alpha = 0 #Прозрачность вспышки
-flash_duration = 5 #Скорость ее исчезновения
 flash_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA) #Поверхност�� для вспышки
 flash_color = (255, 128, 0) #Цвет вспышки
 cat_image_right = pygame.transform.flip(image, True, False)
@@ -518,23 +203,50 @@ while running:
     if CountMouses == maxCountMouses and mouseKingCount==3 and NextLevelFlag: #Переход на доп уровень
         # Анимация перехода
         EndFlag = False
-        transition_font = pygame.font.Font(None, 72)
-        
+        catch_sound.set_volume(0.0)
+        catch_sound2.set_volume(0.0)
+        transition_alpha = 0
+        transition_surface = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
         # Первая надпись "Вы выиграли!"
-        screen.fill(WHITE)
-        text = transition_font.render("Вы выиграли!", True, RED)
-        text_rect = text.get_rect(center=(screen_width//2, screen_height//2))
-        screen.blit(text, text_rect)
-        pygame.display.flip()
-        pygame.time.delay(1000)  # Ждем 1 секунду
-        
-        # Вторая надпись "ИЛИ..."
-        screen.fill(WHITE)
-        text = transition_font.render("ИЛИ...", True, RED)
-        text_rect = text.get_rect(center=(screen_width//2, screen_height//2))
-        screen.blit(text, text_rect)
-        pygame.display.flip()
-        pygame.time.delay(1000)  # Ждем 1 секунду
+        for i in range(30): #Плавное появление
+            transition_surface.fill((255, 255, 255, 0))
+            text = font.render("Вы выиграли!", True, (255, 0, 0, min(255, transition_alpha)))
+            text_rect = text.get_rect(center=(screen_width//2, screen_height//2))
+            transition_surface.blit(text, text_rect)
+            screen.fill(WHITE)
+            screen.blit(transition_surface, (0, 0))
+            pygame.display.flip()
+            transition_alpha += 8
+            pygame.time.delay(30)
+        pygame.time.delay(500)
+        # Плавное исчезновение первой надписи
+        for i in range(30):
+           transition_surface.fill((255, 255, 255, 0))
+           text = font.render("Вы выиграли!", True, (255, 0, 0, max(0, 255 - transition_alpha)))
+           text_rect = text.get_rect(center=(screen_width//2, screen_height//2))
+           transition_surface.blit(text, text_rect)
+           screen.fill(WHITE)
+           screen.blit(transition_surface, (0, 0))
+           pygame.display.flip()
+           transition_alpha += 8
+           pygame.time.delay(30)
+    
+        transition_alpha = 0
+    
+        # Вторая надпись "ИЛИ..." с эффектом "проявления"
+        for i in range(30):
+           screen.fill(WHITE)
+           alpha = min(255, transition_alpha)
+           text_surface = pygame.Surface((text.get_width(), text.get_height()), pygame.SRCALPHA)
+           text = font.render("ИЛИ...", True, (255, 0, 0, alpha))
+           text_rect = text.get_rect(center=(screen_width//2, screen_height//2))
+           text_surface.blit(text, (0, 0))
+           screen.blit(text_surface, text_rect)
+           pygame.display.flip()
+           transition_alpha += 8
+           pygame.time.delay(30)
+    
+        pygame.time.delay(1000)  # Пауза перед продолжением
         
         # Возвращаем флаги в исходное состояние
         EndFlag = True
@@ -548,7 +260,7 @@ while running:
         progressFlag = True
         catSpeed=20 #Скорость кота
         health=5 #Количество жизней
-        mouseSpeed=12.5  #С��орость короля
+        mouseSpeed=12.5  #Скорость короля
         isAbleToDop=1  #Включение доп уровня
         images_changed = True #Смена картин
         if CountMouses == maxCountMouses and images_changed and NextLevelFlag: #Условие на новый экран
@@ -573,6 +285,8 @@ while running:
     if CountMouses == maxCountMouses and mouseKingCount!=3: #Условие в случае выигрыша, но не перехода на доп уровень
         EndFlag = False
         #Зануляем переменные, чтобы экран в конце был чистым
+        screen.fill(WHITE)
+        pygame.display.flip()
         mouseSpeed = 0
         result = ""
         word4 = ""
@@ -620,6 +334,8 @@ while running:
     elif CountMouses == maxCountKingMouses and isAbleToDop == 1:  #Условие в случае выигрыша и перехода на доп уровень
         EndFlag = False
         #Зануляем переменные, чтобы экран в конце был чистым
+        screen.fill(WHITE)
+        pygame.display.flip()
         mouseSpeed = 0
         result = ""
         word4 = ""
