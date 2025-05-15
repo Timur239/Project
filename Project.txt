@@ -1,70 +1,3 @@
-uses GraphABC, ABCobjects;
-
-var p,ob:PictureABC;
-k,level:integer;
-
-procedure KeyDown(key: integer);
-begin
-  case key of    
-    VK_Left: if p.Left > -30 then p.Left -= (10-level);
-    VK_Right: if p.Left < 500 then p.Left += (10-level);
-  end;
-end;
-procedure new_ob();
-begin
-  ob.Top:=0-ob.Height;
-  ob.Left:=random(window.Width-ob.Width);
-end;
-procedure go();
-begin
-if ob.Top<window.Height then
-ob.Top+=level
-else
-begin
-new_ob;
-k -=100;
-end;
-end;
-begin
-level:=1;
-  window.SetSize(800, 800);
-  window.CenterOnScreen();
- p:=new PictureABC(0,0,'C:\Users\Val\Desktop\ÏÈ_èãðà\ïåðñ1.png');    
- //'H:\PABCWork.NET\Output\ïåðñ1.png');
- P.Scale(0.5);
- ob:=new PictureABC(0, 0, 'C:\Users\Val\Desktop\ÏÈ_èãðà\ïàä 1.png');
- //'H:\PABCWork.NET\Output\ïàä 1.png');
- ob.Scale(0.25);
- p.Top:=window.Height-p.Height;
- OnKeyDown :=KeyDown;
-  while TRUE do
-  begin
-  case k of
-  50..150: level:=2;
-  151..250: level:=3;
-  251..299: level:=4;
-  300..350: level:=5
-  else level:=1;
-  end;
-  if k>350 then window.Close;
-  go;
-  if p.Intersect(ob) then
-  begin
-  new_ob;
-  k+=10;
-  end;
-  Window.Title:=IntToStr(k);
-    sleep(10);
-  end;
-end.
-
-
-
-
-
-
-
-
 #Подключение библиотек
 import pygame
 import sys
@@ -140,7 +73,7 @@ isWin=0 #Проверяет, выиграли ли мы
 isAbleToSpawn=0  #Проверяет условие для появления короля
 progressFlag = False #Флаг на пройденность игры
 NextLevelFlag = True #Флаг для корректной работы счетсчика на 2-ом уровне
-DopFlag = True
+AdditionalFlag = True
 #Запуск экрана:
 while running:
     for event in pygame.event.get():
@@ -161,13 +94,13 @@ while running:
 
     screen.fill(WHITE) #Цвет фона
     if shake_timer > 0:
-        shake_offset = random.randint(-15, 15)
+        shake_offset = random.randint(-20, 20)
         shake_timer -= 1
     else:
         shake_offset = 0
     mouseSpawnCoord += mouseSpeed #Движение мыши
-    if isAbleToSpawn==1:
-        mouseKingCoord+=mouseKingSpeed #Движение короля
+    if isAbleToSpawn == 1:
+        mouseKingCoord += mouseKingSpeed #Движение короля
 
     if mouseSpawnCoord >= screen_height:  #Если мы не поймали мышь:
         mouseSpawnCoord = 0
@@ -186,7 +119,7 @@ while running:
             catch_sound2.play()
             music2_playing = True
 
-        if CountMouses in [2, 5, 8, 11] and DopFlag: #Изменение скорости мыши, в зависимости от ее числа
+        if CountMouses in [2, 5, 8, 11] and AdditionalFlag: #Изменение скорости мыши, в зависимости от ее числа
             mouseSpeed -= 2
             KingFlag = False
 
@@ -209,7 +142,7 @@ while running:
         if not music_playing:
             catch_sound.play()
             music_playing = True
-        if CountMouses in [3, 6, 9, 12] and DopFlag:  #Изменение скорости мыши, в зависимости от ее числа
+        if CountMouses in [3, 6, 9, 12] and AdditionalFlag:  #Изменение скорости мыши, в зависимости от ее числа
             mouseSpeed += 2
             if mouseKingCount!=3 and KingFlag == True: #Если мы еще не словили 3-х королей
                 isAbleToSpawn=1
@@ -227,7 +160,7 @@ while running:
         isMKActive=0
         randomMouseKingPosition = random.randint(50,700)
         isAbleToSpawn=0
-    for i in range(health): #Условие на сердца
+    for i in range(health): #Условие на здоровье
         screen.blit(image3, (10 + i * (image3.get_width() + 1), 10))
     #Текст на экране:
     text = font.render(f"{CountMouses}", True, RED)
@@ -245,6 +178,7 @@ while running:
     text = font.render(f"{word4}", True, RED)
     text_rect = text.get_rect(center=(125, 50))
     screen.blit(text, text_rect)
+    #Вспышка при ловле мыши:
     if flash_alpha > 0:
         flash_surface.fill((*flash_color,flash_alpha)) #Заливка поверхности цветом с прозрачностью
         screen.blit(flash_surface, (0, 0)) #Рисуем поверх всего
@@ -268,7 +202,7 @@ while running:
         screen.blit(image2, (randomMousePosition,mouseSpawnCoord))
     if CountMouses == maxCountMouses and mouseKingCount==3 and NextLevelFlag: #Переход на доп уровень
         image2 = image4 #Картинка короля
-        DopFlag = False
+        AdditionalFlag = False
         catch_sound3.play()
         catch_sound.set_volume(0.0)
         catch_sound2.set_volume(0.0)
@@ -371,3 +305,4 @@ while running:
 #Окончание игры:
 pygame.quit()
 sys.exit()
+
